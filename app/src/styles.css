@@ -1,10 +1,10 @@
 :root {
-  --green: #2b6a5b;
-  --green-dark: #1f4f44;
-  --green-light: #e6f2ef;
+  --accent: #3e7d68;
+  --accent-dark: #2c5c4c;
+  --accent-soft: #e2efe9;
   --ink: #22302c;
   --muted: #6b7a75;
-  --bg: #f7f9f8;
+  --bg: #f4f8f5;
   --card: #ffffff;
   --border: #dde6e3;
   --warn: #a05a1c;
@@ -34,7 +34,7 @@ body {
   align-items: center;
   gap: 1.5rem;
   padding: 0.7rem 1.2rem;
-  background: var(--green);
+  background: var(--accent);
   color: #fff;
   flex-wrap: wrap;
 }
@@ -126,8 +126,8 @@ h3 {
 }
 
 a.card:hover {
-  border-color: var(--green);
-  box-shadow: 0 2px 8px rgba(43, 106, 91, 0.12);
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .cards {
@@ -174,21 +174,21 @@ button,
 
 button.primary,
 .button.primary {
-  background: var(--green);
-  border-color: var(--green);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
 }
 
 button.primary:hover,
 .button.primary:hover {
-  background: var(--green-dark);
+  background: var(--accent-dark);
 }
 
 button.link,
 .link {
   border: none;
   background: none;
-  color: var(--green);
+  color: var(--accent);
   padding: 0.2rem;
   text-decoration: underline;
   cursor: pointer;
@@ -221,8 +221,8 @@ button.link,
 .form input:focus,
 .form select:focus,
 .form textarea:focus {
-  outline: 2px solid var(--green-light);
-  border-color: var(--green);
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
 }
 
 .row {
@@ -262,9 +262,9 @@ button.link,
 }
 
 .tab.active {
-  color: var(--green-dark);
+  color: var(--accent-dark);
   font-weight: 700;
-  box-shadow: inset 0 -3px 0 var(--green);
+  box-shadow: inset 0 -3px 0 var(--accent);
 }
 
 .tags {
@@ -275,8 +275,8 @@ button.link,
 }
 
 .tag {
-  background: var(--green-light);
-  color: var(--green-dark);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
   border-radius: 999px;
   padding: 0.1rem 0.7rem;
   font-size: 0.82rem;
@@ -290,7 +290,7 @@ button.link,
 }
 
 .status-active {
-  color: var(--green);
+  color: var(--accent);
 }
 
 .status-done {
@@ -338,7 +338,7 @@ button.link,
 }
 
 .timeline .card {
-  border-inline-start: 4px solid var(--green);
+  border-inline-start: 4px solid var(--accent);
 }
 
 @media (max-width: 600px) {
@@ -349,4 +349,104 @@ button.link,
   .page {
     padding: 0.8rem;
   }
+}
+
+.stu-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.avatar {
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.student-card {
+  border-inline-start: 4px solid var(--accent);
+}
+
+.swatches {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.swatch {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  color: #fff;
+  font-weight: 700;
+  padding: 0;
+}
+
+.swatch.selected {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.emoji-pick {
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 12px;
+  font-size: 1.3rem;
+  padding: 0;
+  background: var(--card);
+}
+
+.emoji-pick.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.schedule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.schedule-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.schedule-list li:last-child {
+  border-bottom: none;
+}
+
+.schedule-list .time {
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 3.2rem;
+}
+
+.schedule-img {
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.schedule-table {
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.schedule-table td {
+  border: 1px solid var(--border);
+  padding: 0.3rem 0.6rem;
+  white-space: nowrap;
 }

@@ -18,14 +18,17 @@ import {
   GOAL_DOMAIN_LABELS,
   GOAL_STATUS_LABELS,
 } from '../types';
+import Avatar from '../components/Avatar';
+import ScheduleTab from '../components/ScheduleTab';
 
-type Tab = 'overview' | 'meetings' | 'goals' | 'contacts';
+type Tab = 'overview' | 'meetings' | 'goals' | 'contacts' | 'schedule';
 
 const TAB_LABELS: Record<Tab, string> = {
   overview: 'סקירה',
   meetings: 'מפגשים',
   goals: 'מטרות',
   contacts: 'יומן קשר',
+  schedule: 'מערכת שעות',
 };
 
 export default function StudentCard({ mentor }: { mentor: Mentor }) {
@@ -65,9 +68,12 @@ export default function StudentCard({ mentor }: { mentor: Mentor }) {
   return (
     <div>
       <div className="page-head">
-        <div>
-          <h1>{student.name}</h1>
-          <p className="muted">{student.group}</p>
+        <div className="stu-head">
+          <Avatar student={student} size={52} />
+          <div>
+            <h1>{student.name}</h1>
+            <p className="muted">{student.group}</p>
+          </div>
         </div>
         <Link to={`/students/${student.id}/meetings/new`} className="button primary">
           + תיעוד מפגש
@@ -92,6 +98,7 @@ export default function StudentCard({ mentor }: { mentor: Mentor }) {
       {tab === 'contacts' && (
         <Contacts studentId={student.id} contacts={contacts} onChange={reload} />
       )}
+      {tab === 'schedule' && <ScheduleTab studentId={student.id} />}
       {/* mentor מועבר בהמשך לצורכי שיתוף/הרשאות; כרגע הצפייה מוגבלת ממילא לחניכים של החונכת */}
       <span className="hidden">{mentor.id}</span>
     </div>

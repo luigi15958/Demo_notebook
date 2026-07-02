@@ -16,7 +16,39 @@ export interface Student {
   birthDate?: string; // ISO date
   intakeNotes: string; // תיק היכרות: מידע מיועצת, חונך קודם, הורים
   strengths: string[]; // פרופיל חוזקות
+  color: string; // צבע אישי לכרטיס הילד.ה (hex)
+  emoji: string; // אימוג'י אישי, נבחר יחד עם הילד.ה
 }
+
+// העדפות אישיות של החונכ.ת — "הכריכה של המחברת שלי"
+export interface MentorPrefs {
+  mentorId: string;
+  themeId: string; // ערכת צבע, ראו theme.ts
+  notebookEmoji: string; // סמל המחברת בכותרת
+}
+
+// מערכת שעות של חניכ.ה
+export interface ScheduleEntry {
+  id: string;
+  day: number; // 0=ראשון … 5=שישי
+  time: string; // "10:30"
+  course: string;
+}
+
+export interface ScheduleAttachment {
+  type: 'image' | 'table';
+  name: string; // שם הקובץ שהועלה
+  dataUrl?: string; // לתמונה
+  table?: string[][]; // לגיליון אקסל שפוענח
+}
+
+export interface Schedule {
+  studentId: string;
+  entries: ScheduleEntry[];
+  attachment?: ScheduleAttachment;
+}
+
+export const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 
 // מוקד המפגש לפי עקרון האיזון being-doing מהחוברת
 export type MeetingFocus = 'being' | 'doing' | 'combined';

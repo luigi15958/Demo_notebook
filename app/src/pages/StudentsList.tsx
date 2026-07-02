@@ -2,10 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getRepo } from '../data/repo';
 import type { Meeting, Mentor, Student } from '../types';
+import Avatar from '../components/Avatar';
 
 interface Row {
   student: Student;
   lastMeeting: Meeting | null;
+}
+
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'בוקר טוב';
+  if (h < 17) return 'צהריים טובים';
+  return 'ערב טוב';
 }
 
 export default function StudentsList({ mentor }: { mentor: Mentor }) {
@@ -27,29 +35,46 @@ export default function StudentsList({ mentor }: { mentor: Mentor }) {
 
   if (!rows) return <p>טוען…</p>;
 
+  const firstName = mentor.name.split(' ')[0];
+
   return (
     <div>
       <div className="page-head">
-        <h1>החניכים והחניכות שלי</h1>
+        <div>
+          <h1>
+            {greeting()}, {firstName}
+          </h1>
+          <p className="muted">
+            {rows.length > 0
+              ? `${rows.length} חניכים וחניכות במחברת שלך`
+              : 'המחברת שלך מחכה לחניכ.ה הראשון.ה'}
+          </p>
+        </div>
         <Link to="/students/new" className="button primary">
           + הוספת חניכ.ה
         </Link>
       </div>
 
-      {rows.length === 0 ? (
-        <p className="muted">אין עדיין חניכים. הוסיפו את החניכ.ה הראשון.ה.</p>
-      ) : (
+      {rows.length > 0 && (
         <div className="cards">
           {rows.map(({ student, lastMeeting }) => {
             const days = lastMeeting ? daysSince(lastMeeting.date) : null;
             return (
-              <Link key={student.id} to={`/students/${student.id}`} className="card student-card">
-                <h2>{student.name}</h2>
-                <p className="muted">{student.group}</p>
+              <Link
+                key={student.id}
+                to={`/students/${student.id}`}
+                className="card student-card"
+                style={{ borderInlineStartColor: student.color || 'var(--accent)' }}
+              >
+                <div className="stu-head">
+                  <Avatar student={student} />
+                  <div>
+                    <h2>{student.name}</h2>
+                    <p className="muted">{student.group}</p>
+                  </div>
+                </div>
                 <p className={days !== null && days > 10 ? 'warn' : ''}>
-                  {lastMeeting
-                    ? `מפגש אחרון: לפני ${days} ימים`
-                    : 'טרם תועד מפגש'}
+                  {lastMeeting ? `מפגש אחרון: לפני ${days} ימים` : 'טרם תועד מפגש'}
                 </p>
                 {student.strengths.length > 0 && (
                   <div className="tags">

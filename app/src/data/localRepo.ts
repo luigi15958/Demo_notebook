@@ -4,10 +4,19 @@ import type {
   GoalStatus,
   Meeting,
   Mentor,
+  MentorPrefs,
+  Schedule,
   Student,
 } from '../types';
 import type { Repo } from './repo';
-import { seedContacts, seedGoals, seedMeetings, seedMentors, seedStudents } from './seed';
+import {
+  seedContacts,
+  seedGoals,
+  seedMeetings,
+  seedMentors,
+  seedSchedules,
+  seedStudents,
+} from './seed';
 
 // מצב דמו: כל הנתונים נשמרים ב-localStorage של הדפדפן, ללא שרת.
 
@@ -20,13 +29,20 @@ interface Db {
   meetings: Meeting[];
   goals: Goal[];
   contacts: ContactLogEntry[];
+  prefs: MentorPrefs[];
+  schedules: Schedule[];
 }
 
 function load(): Db {
   const raw = localStorage.getItem(KEY);
   if (raw) {
     try {
-      return JSON.parse(raw) as Db;
+      const db = JSON.parse(raw) as Db;
+      // שדרוג נתונים מגרסאות קודמות של הדמו
+      db.prefs ??= [];
+      db.schedules ??= seedSchedules;
+      db.students = db.students.map((s) => ({ ...s, color: s.color ?? '', emoji: s.emoji ?? '' }));
+      return db;
     } catch {
       // נתונים פגומים — מתחילים מנתוני הדוגמה
     }
@@ -37,6 +53,8 @@ function load(): Db {
     meetings: seedMeetings,
     goals: seedGoals,
     contacts: seedContacts,
+    prefs: [],
+    schedules: seedSchedules,
   };
   save(db);
   return db;
@@ -153,6 +171,31 @@ export function createLocalRepo(): Repo {
       db.contacts.push(entry);
       save(db);
       return entry;
+    },
+
+    async getPrefs(mentorId: string) {
+      const found = load().prefs.find((p) => p.mentorId === mentorId);
+      return found ?? { mentorId, themeId: 'botanical', notebookEmoji: '📔' };
+    },
+
+    async savePrefs(prefs: MentorPrefs) {
+      const db = load();
+      const i = db.prefs.findIndex((p) => p.mentorId === prefs.mentorId);
+      if (i >= 0) db.prefs[i] = prefs;
+      else db.prefs.push(prefs);
+      save(db);
+    },
+
+    async getSchedule(studentId: string) {
+      return load().schedules.find((s) => s.studentId === studentId) ?? null;
+    },
+
+    async saveSchedule(schedule: Schedule) {
+      const db = load();
+      const i = db.schedules.findIndex((s) => s.studentId === schedule.studentId);
+      if (i >= 0) db.schedules[i] = schedule;
+      else db.schedules.push(schedule);
+      save(db);
     },
   };
 }

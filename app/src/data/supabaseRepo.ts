@@ -5,6 +5,8 @@ import type {
   GoalStatus,
   Meeting,
   Mentor,
+  MentorPrefs,
+  Schedule,
   Student,
 } from '../types';
 import type { Repo } from './repo';
@@ -20,6 +22,8 @@ type StudentRow = {
   birth_date: string | null;
   intake_notes: string;
   strengths: string[];
+  color: string;
+  emoji: string;
 };
 
 function studentFromRow(r: StudentRow): Student {
@@ -31,6 +35,8 @@ function studentFromRow(r: StudentRow): Student {
     birthDate: r.birth_date ?? undefined,
     intakeNotes: r.intake_notes,
     strengths: r.strengths ?? [],
+    color: r.color ?? '',
+    emoji: r.emoji ?? '',
   };
 }
 
@@ -163,6 +169,8 @@ export function createSupabaseRepo(): Repo {
           birth_date: s.birthDate ?? null,
           intake_notes: s.intakeNotes,
           strengths: s.strengths,
+          color: s.color,
+          emoji: s.emoji,
         })
         .select()
         .single();
@@ -179,6 +187,8 @@ export function createSupabaseRepo(): Repo {
           birth_date: s.birthDate ?? null,
           intake_notes: s.intakeNotes,
           strengths: s.strengths,
+          color: s.color,
+          emoji: s.emoji,
         })
         .eq('id', s.id);
       throwIf(error);
@@ -305,6 +315,54 @@ export function createSupabaseRepo(): Repo {
         summary: r.summary,
         followUp: r.follow_up,
       };
+    },
+
+    async getPrefs(mentorId: string) {
+      const { data, error } = await client
+        .from('profiles')
+        .select('prefs')
+        .eq('id', mentorId)
+        .maybeSingle();
+      throwIf(error);
+      const p = (data?.prefs ?? {}) as Partial<MentorPrefs>;
+      return {
+        mentorId,
+        themeId: p.themeId ?? 'botanical',
+        notebookEmoji: p.notebookEmoji ?? '📔',
+      };
+    },
+
+    async savePrefs(prefs: MentorPrefs) {
+      const { error } = await client
+        .from('profiles')
+        .update({ prefs: { themeId: prefs.themeId, notebookEmoji: prefs.notebookEmoji } })
+        .eq('id', prefs.mentorId);
+      throwIf(error);
+    },
+
+    async getSchedule(studentId: string) {
+      const { data, error } = await client
+        .from('schedules')
+        .select('*')
+        .eq('student_id', studentId)
+        .maybeSingle();
+      throwIf(error);
+      if (!data) return null;
+      return {
+        studentId: data.student_id,
+        entries: data.entries ?? [],
+        attachment: data.attachment ?? undefined,
+      } as Schedule;
+    },
+
+    async saveSchedule(schedule: Schedule) {
+      const { error } = await client.from('schedules').upsert({
+        student_id: schedule.studentId,
+        entries: schedule.entries,
+        attachment: schedule.attachment ?? null,
+        updated_at: new Date().toISOString(),
+      });
+      throwIf(error);
     },
   };
 }

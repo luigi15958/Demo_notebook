@@ -1,4 +1,4 @@
-import type { ContactLogEntry, Goal, Meeting, Mentor, Student } from '../types';
+import type { ContactLogEntry, Goal, Meeting, Mentor, Schedule, Student } from '../types';
 
 // נתוני דוגמה למצב דמו — דמויות בדויות בלבד
 
@@ -17,6 +17,8 @@ export const seedStudents: Student[] = [
     intakeNotes:
       'עבר מחונכת קודמת (דנה). אוהב כדורסל ומשחקי אסטרטגיה. ההורים ציינו קושי בהתמדה בקורסים. היועצת המליצה על חיזוק תחושת מסוגלות.',
     strengths: ['יצירתיות', 'הומור', 'חשיבה אסטרטגית'],
+    color: '#3a6ea5',
+    emoji: '🏀',
   },
   {
     id: 's-2',
@@ -27,6 +29,8 @@ export const seedStudents: Student[] = [
     intakeNotes:
       'שנה ראשונה בבית הספר. מגיעה מבית ספר רגיל, עדיין לומדת את עקרון הבחירה. אוהבת ציור ובעלי חיים.',
     strengths: ['רגישות חברתית', 'כישרון אמנותי'],
+    color: '#b0566e',
+    emoji: '🎨',
   },
   {
     id: 's-3',
@@ -36,6 +40,8 @@ export const seedStudents: Student[] = [
     birthDate: '2015-07-21',
     intakeNotes: 'שנה שנייה אצלי. השנה ביקש להעמיק בתכנות. קשר טוב עם ההורים.',
     strengths: ['סקרנות', 'התמדה בתחומי עניין'],
+    color: '#3e7d68',
+    emoji: '🚀',
   },
 ];
 
@@ -139,5 +145,19 @@ export const seedContacts: ContactLogEntry[] = [
     channel: 'talk',
     summary: 'שיחת היכרות על תמר לקראת תחילת החונכות. המלצה: לתת לה עוגנים קבועים.',
     followUp: '',
+  },
+];
+
+export const seedSchedules: Schedule[] = [
+  {
+    studentId: 's-1',
+    entries: [
+      { id: 'se-1', day: 0, time: '09:00', course: 'חונכות אישית' },
+      { id: 'se-2', day: 0, time: '10:30', course: 'נגרות' },
+      { id: 'se-3', day: 1, time: '09:00', course: 'מתמטיקה' },
+      { id: 'se-4', day: 2, time: '11:00', course: 'כדורסל' },
+      { id: 'se-5', day: 3, time: '09:00', course: 'מתמטיקה' },
+      { id: 'se-6', day: 4, time: '10:00', course: 'פרלמנט' },
+    ],
   },
 ];

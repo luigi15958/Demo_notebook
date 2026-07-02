@@ -4,6 +4,8 @@ import type {
   GoalStatus,
   Meeting,
   Mentor,
+  MentorPrefs,
+  Schedule,
   Student,
 } from '../types';
 
@@ -34,6 +36,14 @@ export interface Repo {
   // יומן קשר
   listContacts(studentId: string): Promise<ContactLogEntry[]>;
   addContact(c: Omit<ContactLogEntry, 'id'>): Promise<ContactLogEntry>;
+
+  // העדפות אישיות של החונכ.ת
+  getPrefs(mentorId: string): Promise<MentorPrefs>;
+  savePrefs(prefs: MentorPrefs): Promise<void>;
+
+  // מערכת שעות
+  getSchedule(studentId: string): Promise<Schedule | null>;
+  saveSchedule(schedule: Schedule): Promise<void>;
 }
 
 export function isSupabaseConfigured(): boolean {

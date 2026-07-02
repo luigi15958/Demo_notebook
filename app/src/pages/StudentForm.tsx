@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getRepo } from '../data/repo';
 import type { Mentor } from '../types';
+import { STUDENT_COLORS, STUDENT_EMOJIS } from '../theme';
 
 export default function StudentForm({ mentor }: { mentor: Mentor }) {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
   const [birthDate, setBirthDate] = useState('');
   const [intakeNotes, setIntakeNotes] = useState('');
   const [strengthsText, setStrengthsText] = useState('');
+  const [color, setColor] = useState(STUDENT_COLORS[0]);
+  const [emoji, setEmoji] = useState('');
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -24,6 +27,8 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
         .split(',')
         .map((s) => s.trim())
         .filter(Boolean),
+      color,
+      emoji,
     });
     navigate(`/students/${student.id}`);
   }
@@ -67,6 +72,44 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
             placeholder="למשל: יצירתיות, הומור, סקרנות"
           />
         </label>
+
+        <label>צבע אישי</label>
+        <div className="swatches">
+          {STUDENT_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={color === c ? 'swatch selected' : 'swatch'}
+              style={{ background: c }}
+              onClick={() => setColor(c)}
+            >
+              {color === c ? '✓' : ''}
+            </button>
+          ))}
+        </div>
+
+        <label>אימוג'י אישי — כדאי לבחור יחד עם הילד.ה</label>
+        <div className="swatches">
+          <button
+            type="button"
+            className={emoji === '' ? 'emoji-pick selected' : 'emoji-pick'}
+            onClick={() => setEmoji('')}
+            title="בלי אימוג'י"
+          >
+            —
+          </button>
+          {STUDENT_EMOJIS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              className={emoji === e ? 'emoji-pick selected' : 'emoji-pick'}
+              onClick={() => setEmoji(e)}
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+
         <button type="submit" className="primary">
           שמירה
         </button>
