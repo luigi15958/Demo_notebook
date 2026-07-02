@@ -18,13 +18,61 @@ export interface Student {
   strengths: string[]; // פרופיל חוזקות
   color: string; // צבע אישי לכרטיס הילד.ה (hex)
   emoji: string; // אימוג'י אישי, נבחר יחד עם הילד.ה
+  coverQuote: string; // "הכריכה" — משפט אישי שהילד.ה בחר.ה
 }
+
+// שדה מותאם אישית בטופס תיעוד המפגש
+export interface CustomFieldDef {
+  id: string;
+  label: string;
+}
+
+// תבנית התיעוד של החונכ.ת: אילו שדות מובנים מוסתרים ואילו שדות משלה נוספו
+export interface MeetingTemplate {
+  hiddenFields: string[]; // מזהי שדות מובנים שהוסתרו
+  customFields: CustomFieldDef[];
+}
+
+// שדות מובנים שאפשר להסתיר (נושאים, תאריך ומשך — תמיד מוצגים)
+export const BUILTIN_FIELDS: { id: string; label: string }[] = [
+  { id: 'strengthsAndChallenges', label: 'נקודות חוזק ואתגרים שעלו' },
+  { id: 'actions', label: 'דרכי פעולה שגובשו' },
+  { id: 'insights', label: 'תובנות או רעיונות בעקבות השיחה' },
+  { id: 'sharing', label: 'שיתוף הורים או גורמים נוספים' },
+];
+
+export type HomeWidgetId = 'gaps' | 'birthdays';
+
+export interface HomeWidgetPref {
+  id: HomeWidgetId;
+  enabled: boolean;
+}
+
+export const HOME_WIDGET_LABELS: Record<HomeWidgetId, string> = {
+  gaps: 'לא נפגשנו מזמן',
+  birthdays: 'ימי הולדת קרובים',
+};
 
 // העדפות אישיות של החונכ.ת — "הכריכה של המחברת שלי"
 export interface MentorPrefs {
   mentorId: string;
   themeId: string; // ערכת צבע, ראו theme.ts
   notebookEmoji: string; // סמל המחברת בכותרת
+  template: MeetingTemplate;
+  homeWidgets: HomeWidgetPref[]; // מה מופיע במסך הבית ובאיזה סדר
+}
+
+export function defaultPrefs(mentorId: string): MentorPrefs {
+  return {
+    mentorId,
+    themeId: 'botanical',
+    notebookEmoji: '📔',
+    template: { hiddenFields: [], customFields: [] },
+    homeWidgets: [
+      { id: 'gaps', enabled: true },
+      { id: 'birthdays', enabled: true },
+    ],
+  };
 }
 
 // מערכת שעות של חניכ.ה
@@ -65,6 +113,7 @@ export interface Meeting {
   actions: string; // דרכי פעולה שגובשו
   insights: string; // תובנות או רעיונות בעקבות השיחה
   sharing: string; // שיתוף הורים או גורמים נוספים (במידת הצורך)
+  customFields?: { label: string; value: string }[]; // שדות מהתבנית האישית של החונכ.ת
   createdAt: string;
 }
 

@@ -13,6 +13,7 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
   const [strengthsText, setStrengthsText] = useState('');
   const [color, setColor] = useState(STUDENT_COLORS[0]);
   const [emoji, setEmoji] = useState('');
+  const [coverQuote, setCoverQuote] = useState('');
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -29,6 +30,7 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
         .filter(Boolean),
       color,
       emoji,
+      coverQuote: coverQuote.trim(),
     });
     navigate(`/students/${student.id}`);
   }
@@ -109,6 +111,15 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
             </button>
           ))}
         </div>
+
+        <label>
+          המשפט של הילד.ה — "כריכה" אישית לכרטיס (אפשר גם לבחור יחד במפגש הראשון)
+          <input
+            value={coverQuote}
+            onChange={(e) => setCoverQuote(e.target.value)}
+            placeholder='למשל: "העיקר שיהיה מעניין"'
+          />
+        </label>
 
         <button type="submit" className="primary">
           שמירה

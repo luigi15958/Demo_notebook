@@ -9,6 +9,7 @@ import type {
   Schedule,
   Student,
 } from '../types';
+import { defaultPrefs } from '../types';
 import type { Repo } from './repo';
 
 // מתאם Supabase: הרשאות נאכפות ב-Row-Level Security בצד השרת
@@ -24,6 +25,7 @@ type StudentRow = {
   strengths: string[];
   color: string;
   emoji: string;
+  cover_quote: string;
 };
 
 function studentFromRow(r: StudentRow): Student {
@@ -37,6 +39,7 @@ function studentFromRow(r: StudentRow): Student {
     strengths: r.strengths ?? [],
     color: r.color ?? '',
     emoji: r.emoji ?? '',
+    coverQuote: r.cover_quote ?? '',
   };
 }
 
@@ -52,6 +55,7 @@ type MeetingRow = {
   actions: string;
   insights: string;
   sharing: string;
+  custom_fields: { label: string; value: string }[] | null;
   created_at: string;
 };
 
@@ -68,6 +72,7 @@ function meetingFromRow(r: MeetingRow): Meeting {
     actions: r.actions,
     insights: r.insights,
     sharing: r.sharing,
+    customFields: r.custom_fields ?? [],
     createdAt: r.created_at,
   };
 }
@@ -171,6 +176,7 @@ export function createSupabaseRepo(): Repo {
           strengths: s.strengths,
           color: s.color,
           emoji: s.emoji,
+          cover_quote: s.coverQuote,
         })
         .select()
         .single();
@@ -189,6 +195,7 @@ export function createSupabaseRepo(): Repo {
           strengths: s.strengths,
           color: s.color,
           emoji: s.emoji,
+          cover_quote: s.coverQuote,
         })
         .eq('id', s.id);
       throwIf(error);
@@ -218,6 +225,7 @@ export function createSupabaseRepo(): Repo {
           actions: m.actions,
           insights: m.insights,
           sharing: m.sharing,
+          custom_fields: m.customFields ?? [],
         })
         .select()
         .single();
@@ -325,18 +333,15 @@ export function createSupabaseRepo(): Repo {
         .maybeSingle();
       throwIf(error);
       const p = (data?.prefs ?? {}) as Partial<MentorPrefs>;
-      return {
-        mentorId,
-        themeId: p.themeId ?? 'botanical',
-        notebookEmoji: p.notebookEmoji ?? '📔',
-      };
+      return { ...defaultPrefs(mentorId), ...p, mentorId };
     },
 
     async savePrefs(prefs: MentorPrefs) {
+      const { mentorId, ...rest } = prefs;
       const { error } = await client
         .from('profiles')
-        .update({ prefs: { themeId: prefs.themeId, notebookEmoji: prefs.notebookEmoji } })
-        .eq('id', prefs.mentorId);
+        .update({ prefs: rest })
+        .eq('id', mentorId);
       throwIf(error);
     },
 

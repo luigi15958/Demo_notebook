@@ -19,6 +19,7 @@ export const seedStudents: Student[] = [
     strengths: ['יצירתיות', 'הומור', 'חשיבה אסטרטגית'],
     color: '#3a6ea5',
     emoji: '🏀',
+    coverQuote: 'העיקר שיהיה מעניין',
   },
   {
     id: 's-2',
@@ -31,6 +32,7 @@ export const seedStudents: Student[] = [
     strengths: ['רגישות חברתית', 'כישרון אמנותי'],
     color: '#b0566e',
     emoji: '🎨',
+    coverQuote: '',
   },
   {
     id: 's-3',
@@ -42,6 +44,7 @@ export const seedStudents: Student[] = [
     strengths: ['סקרנות', 'התמדה בתחומי עניין'],
     color: '#3e7d68',
     emoji: '🚀',
+    coverQuote: 'יום אחד אבנה חללית',
   },
 ];
 

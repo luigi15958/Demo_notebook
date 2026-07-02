@@ -8,6 +8,7 @@ import type {
   Schedule,
   Student,
 } from '../types';
+import { defaultPrefs } from '../types';
 import type { Repo } from './repo';
 import {
   seedContacts,
@@ -41,7 +42,12 @@ function load(): Db {
       // שדרוג נתונים מגרסאות קודמות של הדמו
       db.prefs ??= [];
       db.schedules ??= seedSchedules;
-      db.students = db.students.map((s) => ({ ...s, color: s.color ?? '', emoji: s.emoji ?? '' }));
+      db.students = db.students.map((s) => ({
+        ...s,
+        color: s.color ?? '',
+        emoji: s.emoji ?? '',
+        coverQuote: s.coverQuote ?? '',
+      }));
       return db;
     } catch {
       // נתונים פגומים — מתחילים מנתוני הדוגמה
@@ -175,7 +181,7 @@ export function createLocalRepo(): Repo {
 
     async getPrefs(mentorId: string) {
       const found = load().prefs.find((p) => p.mentorId === mentorId);
-      return found ?? { mentorId, themeId: 'botanical', notebookEmoji: '📔' };
+      return { ...defaultPrefs(mentorId), ...found };
     },
 
     async savePrefs(prefs: MentorPrefs) {

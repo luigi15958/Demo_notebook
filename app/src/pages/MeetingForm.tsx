@@ -1,37 +1,49 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { getRepo } from '../data/repo';
-import type { MeetingFocus, Mentor, Student } from '../types';
-import { FOCUS_LABELS } from '../types';
+import type { MeetingFocus, MeetingTemplate, Mentor, Student } from '../types';
+import { BUILTIN_FIELDS, FOCUS_LABELS } from '../types';
 
-// טופס תיעוד מפגש — לפי פורמט התיעוד שבחוברת (פרק ארגז הכלים):
-// תאריך ומשך, נושאים, חוזקות ואתגרים, דרכי פעולה, תובנות, שיתוף.
+// טופס תיעוד מפגש — לפי פורמט התיעוד שבחוברת (פרק ארגז הכלים),
+// מותאם לתבנית האישית של החונכ.ת: שדות מובנים שהוסתרו לא מוצגים,
+// ושדות אישיים שהוגדרו ב"עיצוב שלי" מתווספים.
 
 export default function MeetingForm({ mentor }: { mentor: Mentor }) {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
+  const [template, setTemplate] = useState<MeetingTemplate | null>(null);
 
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [durationMin, setDurationMin] = useState(20);
   const [focus, setFocus] = useState<MeetingFocus>('combined');
   const [topics, setTopics] = useState('');
-  const [strengthsAndChallenges, setStrengthsAndChallenges] = useState('');
-  const [actions, setActions] = useState('');
-  const [insights, setInsights] = useState('');
-  const [sharing, setSharing] = useState('');
+  const [builtins, setBuiltins] = useState<Record<string, string>>({
+    strengthsAndChallenges: '',
+    actions: '',
+    insights: '',
+    sharing: '',
+  });
+  const [custom, setCustom] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (id) {
-      getRepo().then((repo) => repo.getStudent(id).then(setStudent));
-    }
-  }, [id]);
+    if (!id) return;
+    (async () => {
+      const repo = await getRepo();
+      const [s, prefs] = await Promise.all([repo.getStudent(id), repo.getPrefs(mentor.id)]);
+      setStudent(s);
+      setTemplate(prefs.template);
+    })();
+  }, [id, mentor.id]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!student) return;
+    if (!student || !template) return;
     setSaving(true);
+    const customFields = template.customFields
+      .map((f) => ({ label: f.label, value: (custom[f.id] ?? '').trim() }))
+      .filter((f) => f.value);
     const repo = await getRepo();
     await repo.addMeeting({
       studentId: student.id,
@@ -40,15 +52,20 @@ export default function MeetingForm({ mentor }: { mentor: Mentor }) {
       durationMin,
       focus,
       topics,
-      strengthsAndChallenges,
-      actions,
-      insights,
-      sharing,
+      strengthsAndChallenges: builtins.strengthsAndChallenges,
+      actions: builtins.actions,
+      insights: builtins.insights,
+      sharing: builtins.sharing,
+      customFields,
     });
     navigate(`/students/${student.id}`);
   }
 
-  if (!student) return <p>טוען…</p>;
+  if (!student || !template) return <p>טוען…</p>;
+
+  const visibleBuiltins = BUILTIN_FIELDS.filter(
+    (f) => !template.hiddenFields.includes(f.id),
+  );
 
   return (
     <div className="narrow">
@@ -59,7 +76,8 @@ export default function MeetingForm({ mentor }: { mentor: Mentor }) {
         </Link>
       </div>
       <p className="muted">
-        רק שדה הנושאים נדרש — השאר לפי הצורך. התיעוד נועד לשרת את הקשר, לא להכביד עליו.
+        רק שדה הנושאים נדרש — השאר לפי הצורך. אפשר להתאים את השדות בעמוד{' '}
+        <Link to="/settings">העיצוב שלי</Link>.
       </p>
 
       <form onSubmit={save} className="card form">
@@ -94,26 +112,28 @@ export default function MeetingForm({ mentor }: { mentor: Mentor }) {
           נושאים מרכזיים שעלו בשיחה
           <textarea value={topics} onChange={(e) => setTopics(e.target.value)} rows={3} required />
         </label>
-        <label>
-          נקודות חוזק ואתגרים שעלו
-          <textarea
-            value={strengthsAndChallenges}
-            onChange={(e) => setStrengthsAndChallenges(e.target.value)}
-            rows={2}
-          />
-        </label>
-        <label>
-          דרכי פעולה שגובשו
-          <textarea value={actions} onChange={(e) => setActions(e.target.value)} rows={2} />
-        </label>
-        <label>
-          תובנות או רעיונות בעקבות השיחה
-          <textarea value={insights} onChange={(e) => setInsights(e.target.value)} rows={2} />
-        </label>
-        <label>
-          שיתוף הורים או גורמים נוספים (במידת הצורך)
-          <textarea value={sharing} onChange={(e) => setSharing(e.target.value)} rows={2} />
-        </label>
+
+        {visibleBuiltins.map((f) => (
+          <label key={f.id}>
+            {f.label}
+            <textarea
+              value={builtins[f.id]}
+              onChange={(e) => setBuiltins({ ...builtins, [f.id]: e.target.value })}
+              rows={2}
+            />
+          </label>
+        ))}
+
+        {template.customFields.map((f) => (
+          <label key={f.id}>
+            {f.label}
+            <textarea
+              value={custom[f.id] ?? ''}
+              onChange={(e) => setCustom({ ...custom, [f.id]: e.target.value })}
+              rows={2}
+            />
+          </label>
+        ))}
 
         <button type="submit" className="primary" disabled={saving}>
           {saving ? 'שומר…' : 'שמירת המפגש'}

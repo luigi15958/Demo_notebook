@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getRepo } from '../data/repo';
-import type { Meeting, Mentor, Student } from '../types';
+import type { HomeWidgetPref, Meeting, Mentor, Student } from '../types';
 import Avatar from '../components/Avatar';
 
 interface Row {
@@ -16,13 +16,31 @@ function greeting(): string {
   return 'ערב טוב';
 }
 
+// כמה ימים עד יום ההולדת הקרוב (0=היום), או null אם לא בטווח
+function daysToBirthday(birthDate: string | undefined, within: number): number | null {
+  if (!birthDate) return null;
+  const b = new Date(birthDate);
+  const now = new Date();
+  const next = new Date(now.getFullYear(), b.getMonth(), b.getDate());
+  if (next < new Date(now.getFullYear(), now.getMonth(), now.getDate())) {
+    next.setFullYear(now.getFullYear() + 1);
+  }
+  const days = Math.round((next.getTime() - now.getTime()) / 86400000);
+  return days <= within ? Math.max(0, days) : null;
+}
+
 export default function StudentsList({ mentor }: { mentor: Mentor }) {
   const [rows, setRows] = useState<Row[] | null>(null);
+  const [widgets, setWidgets] = useState<HomeWidgetPref[]>([]);
 
   useEffect(() => {
     (async () => {
       const repo = await getRepo();
-      const students = await repo.listStudents(mentor.id);
+      const [students, prefs] = await Promise.all([
+        repo.listStudents(mentor.id),
+        repo.getPrefs(mentor.id),
+      ]);
+      setWidgets(prefs.homeWidgets);
       const withMeetings = await Promise.all(
         students.map(async (student) => {
           const meetings = await repo.listMeetings(student.id);
@@ -36,6 +54,14 @@ export default function StudentsList({ mentor }: { mentor: Mentor }) {
   if (!rows) return <p>טוען…</p>;
 
   const firstName = mentor.name.split(' ')[0];
+
+  const gaps = rows.filter(
+    ({ lastMeeting }) => !lastMeeting || daysSince(lastMeeting.date) > 10,
+  );
+  const birthdays = rows
+    .map(({ student }) => ({ student, days: daysToBirthday(student.birthDate, 14) }))
+    .filter((x): x is { student: Student; days: number } => x.days !== null)
+    .sort((a, b) => a.days - b.days);
 
   return (
     <div>
@@ -54,6 +80,52 @@ export default function StudentsList({ mentor }: { mentor: Mentor }) {
           + הוספת חניכ.ה
         </Link>
       </div>
+
+      {widgets
+        .filter((w) => w.enabled)
+        .map((w) => {
+          if (w.id === 'gaps' && gaps.length > 0) {
+            return (
+              <section key={w.id} className="card widget">
+                <h2>לא נפגשנו מזמן</h2>
+                <ul className="widget-list">
+                  {gaps.map(({ student, lastMeeting }) => (
+                    <li key={student.id}>
+                      <Link to={`/students/${student.id}`}>
+                        {student.emoji} {student.name}
+                      </Link>
+                      <span className="muted">
+                        {lastMeeting
+                          ? `לפני ${daysSince(lastMeeting.date)} ימים`
+                          : 'טרם תועד מפגש'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          }
+          if (w.id === 'birthdays' && birthdays.length > 0) {
+            return (
+              <section key={w.id} className="card widget">
+                <h2>ימי הולדת קרובים 🎂</h2>
+                <ul className="widget-list">
+                  {birthdays.map(({ student, days }) => (
+                    <li key={student.id}>
+                      <Link to={`/students/${student.id}`}>
+                        {student.emoji} {student.name}
+                      </Link>
+                      <span className="muted">
+                        {days === 0 ? 'היום!' : days === 1 ? 'מחר' : `בעוד ${days} ימים`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            );
+          }
+          return null;
+        })}
 
       {rows.length > 0 && (
         <div className="cards">

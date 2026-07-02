@@ -450,3 +450,52 @@ button.link,
   padding: 0.3rem 0.6rem;
   white-space: nowrap;
 }
+
+.cover-quote {
+  font-style: italic;
+  color: var(--accent-dark);
+  margin: 0.15rem 0 0;
+}
+
+.check-row {
+  display: flex;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin-bottom: 0.4rem;
+}
+
+.custom-field-row {
+  border-bottom: 1px dashed var(--border);
+  padding: 0.3rem 0;
+  margin-bottom: 0.3rem;
+}
+
+.widget {
+  border-inline-start: 4px solid var(--accent);
+}
+
+.widget-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.widget-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.3rem 0;
+}
+
+.widget-list a {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.widget-list a:hover {
+  color: var(--accent);
+}

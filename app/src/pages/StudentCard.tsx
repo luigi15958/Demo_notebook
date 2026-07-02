@@ -73,6 +73,7 @@ export default function StudentCard({ mentor }: { mentor: Mentor }) {
           <div>
             <h1>{student.name}</h1>
             <p className="muted">{student.group}</p>
+            {student.coverQuote && <p className="cover-quote">"{student.coverQuote}"</p>}
           </div>
         </div>
         <Link to={`/students/${student.id}/meetings/new`} className="button primary">
@@ -175,7 +176,43 @@ function Overview({
           <p className="muted">תאריך לידה: {formatDate(student.birthDate)}</p>
         )}
       </section>
+
+      <CoverQuoteEditor student={student} />
     </div>
+  );
+}
+
+// "הכריכה" — משפט אישי שהילד.ה בוחר.ת; נערך יחד במפגש
+function CoverQuoteEditor({ student }: { student: Student }) {
+  const [value, setValue] = useState(student.coverQuote);
+  const [saved, setSaved] = useState(false);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    const repo = await getRepo();
+    await repo.updateStudent({ ...student, coverQuote: value.trim() });
+    student.coverQuote = value.trim();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+
+  return (
+    <section className="card">
+      <h2>המשפט של {student.name.split(' ')[0]}</h2>
+      <p className="muted">משפט אישי שבוחרים יחד — מופיע בראש הכרטיס, כמו כריכה של מחברת.</p>
+      <form onSubmit={save} className="form row wrap">
+        <label className="grow">
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder='למשל: "העיקר שיהיה מעניין"'
+          />
+        </label>
+        <button type="submit" className="primary">
+          {saved ? 'נשמר ✓' : 'שמירה'}
+        </button>
+      </form>
+    </section>
   );
 }
 
@@ -196,6 +233,9 @@ function Meetings({ meetings }: { meetings: Meeting[] }) {
           <Field label="דרכי פעולה" value={m.actions} />
           <Field label="תובנות" value={m.insights} />
           <Field label="שיתוף הורים/גורמים" value={m.sharing} />
+          {(m.customFields ?? []).map((f) => (
+            <Field key={f.label} label={f.label} value={f.value} />
+          ))}
         </article>
       ))}
     </div>
