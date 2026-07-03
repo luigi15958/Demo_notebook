@@ -28,8 +28,9 @@
 body {
   margin: 0;
   font-family: var(--font-body);
+  /* הבהוב הצבע מתחיל מימין-עליון — כיוון הקריאה בעברית */
   background:
-    radial-gradient(circle at 15% 10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 40%),
+    radial-gradient(circle at 85% 10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 40%),
     var(--bg);
   color: var(--ink);
   direction: rtl;
@@ -310,7 +311,8 @@ a.card:active {
   position: relative;
   background: color-mix(in srgb, var(--accent-soft) 65%, var(--paper));
   border: none;
-  border-radius: 4px 18px 18px 18px;
+  /* הפינה ה"מקופלת" בימין-עליון — פתק שמודבק מימין */
+  border-radius: 18px 4px 18px 18px;
 }
 
 .widget::before {
@@ -612,10 +614,11 @@ button.link,
   overflow: hidden;
 }
 
+/* שדרת הכריכה בצד ימין — מחברת עברית נכרכת מימין */
 .login-card::before {
   content: '';
   position: absolute;
-  inset-inline-end: 1.6rem;
+  inset-inline-start: 1.4rem;
   top: 0;
   bottom: 0;
   width: 7px;
