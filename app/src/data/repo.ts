@@ -2,10 +2,13 @@ import type {
   ContactLogEntry,
   Goal,
   GoalStatus,
+  InboxItem,
   Meeting,
   Mentor,
+  MentorActivity,
   MentorPrefs,
   Schedule,
+  SentMessageView,
   Student,
 } from '../types';
 
@@ -44,6 +47,16 @@ export interface Repo {
   // מערכת שעות
   getSchedule(studentId: string): Promise<Schedule | null>;
   saveSchedule(schedule: Schedule): Promise<void>;
+
+  // הודעות רכזת ↔ חונכים
+  listMentors(): Promise<Mentor[]>; // חונכים אישיים בלבד (לרכזת)
+  sendMessage(senderId: string, body: string, recipientIds: string[]): Promise<void>;
+  listInbox(mentorId: string): Promise<InboxItem[]>;
+  confirmRead(messageId: string, mentorId: string): Promise<void>;
+  listSent(): Promise<SentMessageView[]>; // לרכזות — כולל אישורי קריאה
+
+  // דשבורד רכזת — מטא-נתונים בלבד
+  coordinatorOverview(): Promise<MentorActivity[]>;
 }
 
 export function isSupabaseConfigured(): boolean {

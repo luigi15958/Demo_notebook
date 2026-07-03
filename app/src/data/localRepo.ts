@@ -5,6 +5,7 @@ import type {
   Meeting,
   Mentor,
   MentorPrefs,
+  Message,
   Schedule,
   Student,
 } from '../types';
@@ -15,14 +16,23 @@ import {
   seedGoals,
   seedMeetings,
   seedMentors,
+  seedMessages,
+  seedReceipts,
   seedSchedules,
   seedStudents,
 } from './seed';
 
 // מצב דמו: כל הנתונים נשמרים ב-localStorage של הדפדפן, ללא שרת.
 
-const KEY = 'mentoring-notebook-v1';
+// v2: נוספו הודעות, חונכת נוספת ודשבורד — מאתחל את נתוני הדוגמה
+const KEY = 'mentoring-notebook-v2';
 const SESSION_KEY = 'mentoring-notebook-session';
+
+interface Receipt {
+  messageId: string;
+  mentorId: string;
+  readAt: string | null;
+}
 
 interface Db {
   mentors: Mentor[];
@@ -32,6 +42,8 @@ interface Db {
   contacts: ContactLogEntry[];
   prefs: MentorPrefs[];
   schedules: Schedule[];
+  messages: Message[];
+  receipts: Receipt[];
 }
 
 function load(): Db {
@@ -42,6 +54,8 @@ function load(): Db {
       // שדרוג נתונים מגרסאות קודמות של הדמו
       db.prefs ??= [];
       db.schedules ??= seedSchedules;
+      db.messages ??= seedMessages;
+      db.receipts ??= seedReceipts;
       db.students = db.students.map((s) => ({
         ...s,
         color: s.color ?? '',
@@ -61,6 +75,8 @@ function load(): Db {
     contacts: seedContacts,
     prefs: [],
     schedules: seedSchedules,
+    messages: seedMessages,
+    receipts: seedReceipts,
   };
   save(db);
   return db;
@@ -202,6 +218,93 @@ export function createLocalRepo(): Repo {
       if (i >= 0) db.schedules[i] = schedule;
       else db.schedules.push(schedule);
       save(db);
+    },
+
+    async listMentors() {
+      return load().mentors.filter((m) => m.role === 'mentor');
+    },
+
+    async sendMessage(senderId: string, body: string, recipientIds: string[]) {
+      const db = load();
+      const sender = db.mentors.find((m) => m.id === senderId);
+      const message: Message = {
+        id: newId('msg'),
+        senderId,
+        senderName: sender?.name ?? '',
+        body,
+        createdAt: new Date().toISOString(),
+        recipientIds,
+      };
+      db.messages.push(message);
+      for (const rid of recipientIds) {
+        db.receipts.push({ messageId: message.id, mentorId: rid, readAt: null });
+      }
+      save(db);
+    },
+
+    async listInbox(mentorId: string) {
+      const db = load();
+      return db.messages
+        .filter((m) => m.recipientIds.includes(mentorId))
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .map((message) => ({
+          message,
+          readAt:
+            db.receipts.find((r) => r.messageId === message.id && r.mentorId === mentorId)
+              ?.readAt ?? null,
+        }));
+    },
+
+    async confirmRead(messageId: string, mentorId: string) {
+      const db = load();
+      const r = db.receipts.find(
+        (x) => x.messageId === messageId && x.mentorId === mentorId,
+      );
+      if (r && !r.readAt) {
+        r.readAt = new Date().toISOString();
+        save(db);
+      }
+    },
+
+    async listSent() {
+      const db = load();
+      return db.messages
+        .slice()
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+        .map((message) => ({
+          message,
+          receipts: message.recipientIds.map((rid) => ({
+            mentor: db.mentors.find((m) => m.id === rid)!,
+            readAt:
+              db.receipts.find((r) => r.messageId === message.id && r.mentorId === rid)
+                ?.readAt ?? null,
+          })),
+        }));
+    },
+
+    async coordinatorOverview() {
+      const db = load();
+      const now = Date.now();
+      const days = (iso: string) => (now - new Date(iso).getTime()) / 86400000;
+      return db.mentors
+        .filter((m) => m.role === 'mentor')
+        .map((mentor) => {
+          const students = db.students.filter((s) => s.mentorId === mentor.id);
+          const meetings = db.meetings.filter((m) => m.mentorId === mentor.id);
+          const staleStudents = students.filter((s) => {
+            const sm = db.meetings.filter((m) => m.studentId === s.id);
+            return sm.length === 0 || Math.min(...sm.map((m) => days(m.date))) > 10;
+          }).length;
+          return {
+            mentor,
+            studentCount: students.length,
+            meetingsLast14: meetings.filter((m) => days(m.date) <= 14).length,
+            lastMeetingDate: meetings.length
+              ? meetings.map((m) => m.date).sort()[meetings.length - 1]
+              : null,
+            staleStudents,
+          };
+        });
     },
   };
 }

@@ -1,9 +1,18 @@
-import type { ContactLogEntry, Goal, Meeting, Mentor, Schedule, Student } from '../types';
+import type {
+  ContactLogEntry,
+  Goal,
+  Meeting,
+  Mentor,
+  Message,
+  Schedule,
+  Student,
+} from '../types';
 
 // נתוני דוגמה למצב דמו — דמויות בדויות בלבד
 
 export const seedMentors: Mentor[] = [
   { id: 'm-gili', name: 'גילי מזרחי', role: 'mentor' },
+  { id: 'm-dana', name: 'דנה ברק', role: 'mentor' },
   { id: 'm-noa', name: 'נעה וילנר', role: 'coordinator' },
 ];
 
@@ -45,6 +54,18 @@ export const seedStudents: Student[] = [
     color: '#3e7d68',
     emoji: '🚀',
     coverQuote: 'יום אחד אבנה חללית',
+  },
+  {
+    id: 's-4',
+    mentorId: 'm-dana',
+    name: 'נועם שפירא',
+    group: 'חטיבה בוגרת',
+    birthDate: '2010-09-08',
+    intakeNotes: 'שנה שלישית אצלי. מוביל בפרלמנט.',
+    strengths: ['מנהיגות', 'רהיטות'],
+    color: '#a5761f',
+    emoji: '🎭',
+    coverQuote: '',
   },
 ];
 
@@ -97,6 +118,20 @@ export const seedMeetings: Meeting[] = [
     insights: 'צריכה עוגנים קבועים בשבוע כדי להרגיש ביטחון.',
     sharing: '',
     createdAt: daysAgo(6),
+  },
+  {
+    id: 'mt-4',
+    studentId: 's-4',
+    mentorId: 'm-dana',
+    date: daysAgo(20),
+    durationMin: 20,
+    focus: 'doing',
+    topics: 'הכנה להצגת הצעה בפרלמנט.',
+    strengthsAndChallenges: '',
+    actions: '',
+    insights: '',
+    sharing: '',
+    createdAt: daysAgo(20),
   },
 ];
 
@@ -163,4 +198,21 @@ export const seedSchedules: Schedule[] = [
       { id: 'se-6', day: 4, time: '10:00', course: 'פרלמנט' },
     ],
   },
+];
+
+// הודעות מהרכזת + אישורי קריאה
+export const seedMessages: Message[] = [
+  {
+    id: 'msg-1',
+    senderId: 'm-noa',
+    senderName: 'נעה וילנר',
+    body: 'תזכורת: בשבועיים הקרובים מתקיימים מפגשי ההערכה של אמצע השנה. נא לתאם עם החניכים ולתעד במחברת. מוזמנים.ות לפנות אליי בכל שאלה 💚',
+    createdAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+    recipientIds: ['m-gili', 'm-dana'],
+  },
+];
+
+export const seedReceipts: { messageId: string; mentorId: string; readAt: string | null }[] = [
+  { messageId: 'msg-1', mentorId: 'm-gili', readAt: null },
+  { messageId: 'msg-1', mentorId: 'm-dana', readAt: new Date(Date.now() - 86400000).toISOString() },
 ];

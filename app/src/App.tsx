@@ -11,6 +11,8 @@ import StudentForm from './pages/StudentForm';
 import Library from './pages/Library';
 import LibraryChapterPage from './pages/LibraryChapterPage';
 import Settings from './pages/Settings';
+import Messages from './pages/Messages';
+import Dashboard from './pages/Dashboard';
 
 function IconHome() {
   return (
@@ -30,6 +32,15 @@ function IconBook() {
   );
 }
 
+function IconMail() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="3" />
+      <path d="m3 8 9 6 9-6" />
+    </svg>
+  );
+}
+
 function IconBrush() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -45,8 +56,19 @@ function IconBrush() {
 export default function App() {
   const [mentor, setMentor] = useState<Mentor | null>(null);
   const [prefs, setPrefs] = useState<MentorPrefs | null>(null);
+  const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const refreshUnread = useCallback(async (m: Mentor | null) => {
+    if (!m || m.role !== 'mentor') {
+      setUnread(0);
+      return;
+    }
+    const repo = await getRepo();
+    const inbox = await repo.listInbox(m.id);
+    setUnread(inbox.filter((i) => !i.readAt).length);
+  }, []);
 
   const loadPrefs = useCallback(async (m: Mentor) => {
     const repo = await getRepo();
@@ -61,13 +83,15 @@ export default function App() {
       const m = await repo.currentMentor();
       setMentor(m);
       if (m) await loadPrefs(m);
+      await refreshUnread(m);
       setLoading(false);
     })();
-  }, [loadPrefs]);
+  }, [loadPrefs, refreshUnread]);
 
   async function handleSignedIn(m: Mentor) {
     setMentor(m);
     await loadPrefs(m);
+    await refreshUnread(m);
   }
 
   async function handleSignOut() {
@@ -114,7 +138,20 @@ export default function App() {
 
       <main className="page">
         <Routes>
-          <Route path="/" element={<StudentsList mentor={mentor} />} />
+          <Route
+            path="/"
+            element={
+              mentor.role === 'coordinator' ? (
+                <Dashboard mentor={mentor} />
+              ) : (
+                <StudentsList mentor={mentor} />
+              )
+            }
+          />
+          <Route
+            path="/messages"
+            element={<Messages mentor={mentor} onInboxChange={() => refreshUnread(mentor)} />}
+          />
           <Route path="/students/new" element={<StudentForm mentor={mentor} />} />
           <Route path="/students/:id" element={<StudentCard mentor={mentor} />} />
           <Route path="/students/:id/meetings/new" element={<MeetingForm mentor={mentor} />} />
@@ -136,7 +173,12 @@ export default function App() {
       <nav className="bottombar">
         <NavLink to="/" end>
           <IconHome />
-          <span>בית</span>
+          <span>{mentor.role === 'coordinator' ? 'לוח' : 'בית'}</span>
+        </NavLink>
+        <NavLink to="/messages" className="badge-holder">
+          <IconMail />
+          {unread > 0 && <span className="badge">{unread}</span>}
+          <span>הודעות</span>
         </NavLink>
         <NavLink to="/library">
           <IconBook />

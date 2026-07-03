@@ -3,10 +3,13 @@ import type {
   ContactLogEntry,
   Goal,
   GoalStatus,
+  InboxItem,
   Meeting,
   Mentor,
+  MentorActivity,
   MentorPrefs,
   Schedule,
+  SentMessageView,
   Student,
 } from '../types';
 import { defaultPrefs } from '../types';
@@ -368,6 +371,127 @@ export function createSupabaseRepo(): Repo {
         updated_at: new Date().toISOString(),
       });
       throwIf(error);
+    },
+
+    async listMentors() {
+      const { data, error } = await client
+        .from('profiles')
+        .select('id, name, role')
+        .eq('role', 'mentor')
+        .order('name');
+      throwIf(error);
+      return (data ?? []) as Mentor[];
+    },
+
+    async sendMessage(senderId: string, body: string, recipientIds: string[]) {
+      const { data, error } = await client
+        .from('messages')
+        .insert({ sender_id: senderId, body })
+        .select()
+        .single();
+      throwIf(error);
+      const { error: rErr } = await client
+        .from('message_recipients')
+        .insert(recipientIds.map((rid) => ({ message_id: data.id, recipient_id: rid })));
+      throwIf(rErr);
+    },
+
+    async listInbox(mentorId: string) {
+      const { data, error } = await client
+        .from('message_recipients')
+        .select('read_at, messages(id, sender_id, body, created_at, profiles(name))')
+        .eq('recipient_id', mentorId)
+        .order('created_at', { ascending: false, referencedTable: 'messages' });
+      throwIf(error);
+      type Row = {
+        read_at: string | null;
+        messages: {
+          id: string;
+          sender_id: string;
+          body: string;
+          created_at: string;
+          profiles: { name: string } | null;
+        } | null;
+      };
+      return ((data ?? []) as unknown as Row[])
+        .filter((r) => r.messages)
+        .map((r) => ({
+          message: {
+            id: r.messages!.id,
+            senderId: r.messages!.sender_id,
+            senderName: r.messages!.profiles?.name ?? '',
+            body: r.messages!.body,
+            createdAt: r.messages!.created_at,
+            recipientIds: [mentorId],
+          },
+          readAt: r.read_at,
+        })) as InboxItem[];
+    },
+
+    async confirmRead(messageId: string, mentorId: string) {
+      const { error } = await client
+        .from('message_recipients')
+        .update({ read_at: new Date().toISOString() })
+        .eq('message_id', messageId)
+        .eq('recipient_id', mentorId)
+        .is('read_at', null);
+      throwIf(error);
+    },
+
+    async listSent() {
+      const { data, error } = await client
+        .from('messages')
+        .select(
+          'id, sender_id, body, created_at, profiles(name), message_recipients(read_at, profiles(id, name, role))',
+        )
+        .order('created_at', { ascending: false });
+      throwIf(error);
+      type Row = {
+        id: string;
+        sender_id: string;
+        body: string;
+        created_at: string;
+        profiles: { name: string } | null;
+        message_recipients: {
+          read_at: string | null;
+          profiles: { id: string; name: string; role: Mentor['role'] } | null;
+        }[];
+      };
+      return ((data ?? []) as unknown as Row[]).map((r) => ({
+        message: {
+          id: r.id,
+          senderId: r.sender_id,
+          senderName: r.profiles?.name ?? '',
+          body: r.body,
+          createdAt: r.created_at,
+          recipientIds: r.message_recipients
+            .map((x) => x.profiles?.id ?? '')
+            .filter(Boolean),
+        },
+        receipts: r.message_recipients
+          .filter((x) => x.profiles)
+          .map((x) => ({ mentor: x.profiles as Mentor, readAt: x.read_at })),
+      })) as SentMessageView[];
+    },
+
+    async coordinatorOverview() {
+      const { data, error } = await client.rpc('coordinator_overview');
+      throwIf(error);
+      type Row = {
+        mentor_id: string;
+        mentor_name: string;
+        student_count: number;
+        meetings_last_14: number;
+        last_meeting_date: string | null;
+        stale_students: number;
+      };
+      return ((data ?? []) as Row[]).map((r) => ({
+        mentor: { id: r.mentor_id, name: r.mentor_name, role: 'mentor' as const },
+        studentCount: Number(r.student_count),
+        meetingsLast14: Number(r.meetings_last_14),
+        lastMeetingDate: r.last_meeting_date,
+        staleStudents: Number(r.stale_students),
+      })) as MentorActivity[];
     },
   };
 }

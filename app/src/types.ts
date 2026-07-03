@@ -98,6 +98,37 @@ export interface Schedule {
 
 export const DAY_LABELS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 
+// ===== הודעות רכזת ↔ חונכים =====
+
+export interface Message {
+  id: string;
+  senderId: string;
+  senderName: string;
+  body: string;
+  createdAt: string;
+  recipientIds: string[]; // תפוצה = כל החונכים; אישית = נמען אחד
+}
+
+export interface InboxItem {
+  message: Message;
+  readAt: string | null; // אישור קריאה
+}
+
+export interface SentMessageView {
+  message: Message;
+  receipts: { mentor: Mentor; readAt: string | null }[];
+}
+
+// ===== דשבורד רכזת — מטא-נתונים בלבד, ללא תוכן מפגשים =====
+
+export interface MentorActivity {
+  mentor: Mentor;
+  studentCount: number;
+  meetingsLast14: number;
+  lastMeetingDate: string | null;
+  staleStudents: number; // חניכים ללא מפגש 10+ ימים
+}
+
 // מוקד המפגש לפי עקרון האיזון being-doing מהחוברת
 export type MeetingFocus = 'being' | 'doing' | 'combined';
 
