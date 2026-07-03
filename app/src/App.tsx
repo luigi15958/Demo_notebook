@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { getRepo } from './data/repo';
 import type { Mentor, MentorPrefs } from './types';
 import { applyTheme } from './theme';
@@ -11,6 +11,36 @@ import StudentForm from './pages/StudentForm';
 import Library from './pages/Library';
 import LibraryChapterPage from './pages/LibraryChapterPage';
 import Settings from './pages/Settings';
+
+function IconHome() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5 9.5V21h5v-6h4v6h5V9.5" />
+    </svg>
+  );
+}
+
+function IconBook() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  );
+}
+
+function IconBrush() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="8.5" cy="9.5" r="0.6" fill="currentColor" />
+      <circle cx="12" cy="7.5" r="0.6" fill="currentColor" />
+      <circle cx="15.5" cy="9.5" r="0.6" fill="currentColor" />
+      <path d="M12 12a3 3 0 0 0 3 3h3a3.5 3.5 0 0 1-3.5 3.5" />
+    </svg>
+  );
+}
 
 export default function App() {
   const [mentor, setMentor] = useState<Mentor | null>(null);
@@ -69,22 +99,19 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="topbar">
+      <header className="cover">
         <Link to="/" className="brand">
-          {prefs?.notebookEmoji ?? '📔'} המחברת שלי
+          <span className="brand-emoji">{prefs?.notebookEmoji ?? '📔'}</span>
+          המחברת שלי
         </Link>
-        <nav>
-          <Link to="/">החניכים שלי</Link>
-          <Link to="/library">ספרייה</Link>
-          <Link to="/settings">העיצוב שלי</Link>
-        </nav>
         <div className="user">
           <span>{mentor.name}</span>
-          <button className="link" onClick={handleSignOut}>
+          <button className="signout" onClick={handleSignOut}>
             יציאה
           </button>
         </div>
       </header>
+
       <main className="page">
         <Routes>
           <Route path="/" element={<StudentsList mentor={mentor} />} />
@@ -101,10 +128,25 @@ export default function App() {
           />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        <p className="footer">
+          בית הספר הדמוקרטי הוד השרון · כלי פנימי לצוות · המידע רגיש — שמרו על סודיות
+        </p>
       </main>
-      <footer className="footer">
-        בית הספר הדמוקרטי הוד השרון · כלי פנימי לצוות · המידע רגיש — שמרו על סודיות
-      </footer>
+
+      <nav className="bottombar">
+        <NavLink to="/" end>
+          <IconHome />
+          <span>בית</span>
+        </NavLink>
+        <NavLink to="/library">
+          <IconBook />
+          <span>ספרייה</span>
+        </NavLink>
+        <NavLink to="/settings">
+          <IconBrush />
+          <span>עיצוב</span>
+        </NavLink>
+      </nav>
     </div>
   );
 }

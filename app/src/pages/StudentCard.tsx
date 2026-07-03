@@ -67,15 +67,18 @@ export default function StudentCard({ mentor }: { mentor: Mentor }) {
 
   return (
     <div>
-      <div className="page-head">
+      <div
+        className="stu-cover"
+        style={{ '--stu': student.color || 'var(--accent)' } as React.CSSProperties}
+      >
         <div className="stu-head">
-          <Avatar student={student} size={52} />
+          <Avatar student={student} size={62} />
           <div>
             <h1>{student.name}</h1>
             <p className="muted">{student.group}</p>
-            {student.coverQuote && <p className="cover-quote">"{student.coverQuote}"</p>}
           </div>
         </div>
+        {student.coverQuote && <p className="cover-quote">"{student.coverQuote}"</p>}
         <Link to={`/students/${student.id}/meetings/new`} className="button primary">
           + תיעוד מפגש
         </Link>

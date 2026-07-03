@@ -1,4 +1,5 @@
-// ערכות צבע — "כריכת המחברת" של כל חונכ.ת
+// ערכות צבע — "כריכת המחברת" של כל חונכ.ת.
+// כל הרקעים נגזרים מנייר שמנת חם, כך שהאפליקציה מרגישה כמו מחברת אמיתית.
 
 export interface Palette {
   id: string;
@@ -10,12 +11,12 @@ export interface Palette {
 }
 
 export const PALETTES: Palette[] = [
-  { id: 'botanical', name: 'ירוק בוטני', accent: '#3e7d68', accentDark: '#2c5c4c', accentSoft: '#e2efe9', bg: '#f4f8f5' },
-  { id: 'terracotta', name: 'טרקוטה חמה', accent: '#c26d4b', accentDark: '#9e5236', accentSoft: '#f6e3d9', bg: '#faf6ef' },
-  { id: 'lilac', name: 'סגול לילך', accent: '#7b5ea7', accentDark: '#5f4585', accentSoft: '#efe9f8', bg: '#fbfaff' },
-  { id: 'sea', name: 'כחול ים', accent: '#3a6ea5', accentDark: '#2b5480', accentSoft: '#e3edf7', bg: '#f5f9fc' },
-  { id: 'rose', name: 'ורוד עתיק', accent: '#b0566e', accentDark: '#8e4058', accentSoft: '#f8e5ea', bg: '#fdf7f8' },
-  { id: 'honey', name: 'דבש', accent: '#a5761f', accentDark: '#815b14', accentSoft: '#f7ecd6', bg: '#fbf8f0' },
+  { id: 'botanical', name: 'ירוק בוטני', accent: '#3e7d68', accentDark: '#2c5c4c', accentSoft: '#e3efe7', bg: '#f7f5ee' },
+  { id: 'terracotta', name: 'טרקוטה חמה', accent: '#c26d4b', accentDark: '#9e5236', accentSoft: '#f6e3d9', bg: '#faf5ec' },
+  { id: 'lilac', name: 'סגול לילך', accent: '#7b5ea7', accentDark: '#5f4585', accentSoft: '#ece5f6', bg: '#f8f6f1' },
+  { id: 'sea', name: 'כחול ים', accent: '#3a6ea5', accentDark: '#2b5480', accentSoft: '#e1ebf5', bg: '#f6f6ef' },
+  { id: 'rose', name: 'ורוד עתיק', accent: '#b0566e', accentDark: '#8e4058', accentSoft: '#f6e2e8', bg: '#faf5ef' },
+  { id: 'honey', name: 'דבש', accent: '#a5761f', accentDark: '#815b14', accentSoft: '#f5ebd4', bg: '#faf6ec' },
 ];
 
 export const STUDENT_COLORS = [

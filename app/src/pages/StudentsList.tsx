@@ -65,18 +65,23 @@ export default function StudentsList({ mentor }: { mentor: Mentor }) {
 
   return (
     <div>
-      <div className="page-head">
-        <div>
-          <h1>
-            {greeting()}, {firstName}
-          </h1>
-          <p className="muted">
-            {rows.length > 0
-              ? `${rows.length} חניכים וחניכות במחברת שלך`
-              : 'המחברת שלך מחכה לחניכ.ה הראשון.ה'}
-          </p>
-        </div>
-        <Link to="/students/new" className="button primary">
+      <div className="hero">
+        <p className="hero-date">
+          {new Date().toLocaleDateString('he-IL', {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+          })}
+        </p>
+        <h1 className="hero-title">
+          {greeting()}, {firstName}
+        </h1>
+        <p className="muted">
+          {rows.length > 0
+            ? `${rows.length} חניכים וחניכות במחברת שלך`
+            : 'המחברת שלך מחכה לחניכ.ה הראשון.ה'}
+        </p>
+        <Link to="/students/new" className="button primary hero-cta">
           + הוספת חניכ.ה
         </Link>
       </div>
