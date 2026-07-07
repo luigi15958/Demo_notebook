@@ -13,6 +13,8 @@ import LibraryChapterPage from './pages/LibraryChapterPage';
 import Settings from './pages/Settings';
 import Messages from './pages/Messages';
 import Dashboard from './pages/Dashboard';
+import Workspace from './pages/Workspace';
+import SendNote from './pages/SendNote';
 
 function IconHome() {
   return (
@@ -66,8 +68,13 @@ export default function App() {
       return;
     }
     const repo = await getRepo();
-    const inbox = await repo.listInbox(m.id);
-    setUnread(inbox.filter((i) => !i.readAt).length);
+    const [inbox, notes] = await Promise.all([
+      repo.listInbox(m.id),
+      repo.listNotesForMentor(m.id),
+    ]);
+    setUnread(
+      inbox.filter((i) => !i.readAt).length + notes.filter((n) => !n.readAt).length,
+    );
   }, []);
 
   const loadPrefs = useCallback(async (m: Mentor) => {
@@ -116,6 +123,7 @@ export default function App() {
     return (
       <Routes>
         <Route path="/login" element={<Login onSignedIn={handleSignedIn} />} />
+        <Route path="/note" element={<SendNote />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     );
@@ -155,6 +163,8 @@ export default function App() {
           <Route path="/students/new" element={<StudentForm mentor={mentor} />} />
           <Route path="/students/:id" element={<StudentCard mentor={mentor} />} />
           <Route path="/students/:id/meetings/new" element={<MeetingForm mentor={mentor} />} />
+          <Route path="/students/:id/workspace/:eventId" element={<Workspace />} />
+          <Route path="/note" element={<SendNote />} />
           <Route path="/library" element={<Library />} />
           <Route path="/library/:slug" element={<LibraryChapterPage />} />
           <Route

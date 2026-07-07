@@ -7,9 +7,12 @@ import type {
   Mentor,
   MentorActivity,
   MentorPrefs,
+  Note,
+  NoteColor,
   Schedule,
   SentMessageView,
   Student,
+  WorkspaceDraft,
 } from '../types';
 
 // שכבת גישה לנתונים מוחלפת: מצב דמו (localStorage) או Supabase.
@@ -57,6 +60,26 @@ export interface Repo {
 
   // דשבורד רכזת — מטא-נתונים בלבד
   coordinatorOverview(): Promise<MentorActivity[]>;
+
+  // מטרות — עדכון מלא (צעדים, סטטוס, תוכן)
+  updateGoal(goal: Goal): Promise<void>;
+
+  // מרחבי הכנה — תוצר לכל ילד.ה × אירוע
+  getDraft(studentId: string, eventId: string): Promise<WorkspaceDraft | null>;
+  saveDraft(draft: WorkspaceDraft): Promise<void>;
+
+  // פתקים ורודים/כתומים — שליחה ציבורית (עם קוד צוות), קריאה לחונכ.ת בלבד
+  listStudentsForNoteForm(code: string): Promise<{ id: string; name: string }[]>;
+  sendNote(
+    code: string,
+    studentId: string,
+    teacherName: string,
+    color: NoteColor,
+    body: string,
+  ): Promise<void>;
+  listNotesForMentor(mentorId: string): Promise<Note[]>;
+  listNotesForStudent(studentId: string): Promise<Note[]>;
+  markNotesRead(mentorId: string): Promise<void>;
 }
 
 export function isSupabaseConfigured(): boolean {

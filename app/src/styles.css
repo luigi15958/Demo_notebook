@@ -927,3 +927,315 @@ button.link,
   padding: 0 0.25rem;
   border: 2px solid var(--paper);
 }
+
+/* ---------- מטרות: התקדמות וצעדים ---------- */
+
+.progress {
+  position: relative;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+  border-radius: 999px;
+  height: 1.3rem;
+  margin: 0.5rem 0 0.3rem;
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.progress-label {
+  position: relative;
+  display: block;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.3rem;
+  color: var(--ink);
+  mix-blend-mode: multiply;
+}
+
+.steps {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+
+.steps li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.steps li.done span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.steps .check-row {
+  margin-bottom: 0;
+}
+
+.ideas {
+  list-style: none;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.6rem 0.9rem;
+  background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+  border-radius: 12px;
+}
+
+.ideas li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.25rem 0;
+  font-size: 0.92rem;
+}
+
+/* ---------- מרחבי הכנה ---------- */
+
+.ws-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.ws-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border-radius: 12px;
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: transform 0.12s ease;
+}
+
+.ws-link:active {
+  transform: scale(0.97);
+}
+
+.ws-emoji {
+  font-size: 1.2rem;
+}
+
+.ws-section {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  margin-bottom: 0.9rem;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.ws-section summary {
+  cursor: pointer;
+  padding: 0.9rem 1.2rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  list-style: none;
+}
+
+.ws-section summary::-webkit-details-marker {
+  display: none;
+}
+
+.ws-section[open] summary {
+  border-bottom: 1px dashed var(--border);
+}
+
+.ws-body {
+  padding: 0.9rem 1.2rem;
+}
+
+.ws-block {
+  margin-bottom: 0.9rem;
+}
+
+.ws-block h3 {
+  margin-top: 0;
+  color: var(--accent-dark);
+}
+
+.ws-meeting {
+  border-inline-start: 3px solid var(--accent-soft);
+  padding-inline-start: 0.6rem;
+  margin: 0.35rem 0;
+}
+
+.ws-note {
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+  margin: 0.3rem 0;
+}
+
+.ws-note-pink {
+  background: #fbe3ee;
+}
+
+.ws-note-orange {
+  background: #fdead2;
+}
+
+.ws-editor {
+  width: 100%;
+  font: inherit;
+  padding: 0.8rem;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 1.55em,
+    color-mix(in srgb, var(--border) 55%, transparent) 1.55em,
+    color-mix(in srgb, var(--border) 55%, transparent) calc(1.55em + 1px)
+  );
+  line-height: 1.6;
+  resize: vertical;
+  margin-bottom: 0.7rem;
+}
+
+.ws-editor:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* ---------- פתקים ורודים/כתומים ---------- */
+
+.notes-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.9rem;
+}
+
+.sticky-note {
+  position: relative;
+  padding: 1.1rem 1rem 0.8rem;
+  border-radius: 2px 14px 14px 14px;
+  box-shadow: 0 6px 14px -8px rgba(43, 38, 30, 0.45);
+  animation: rise 0.35s ease both;
+}
+
+.sticky-note::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  inset-inline-start: 50%;
+  transform: translateX(50%) rotate(-2deg);
+  width: 3.6rem;
+  height: 1rem;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 2px;
+}
+
+.sticky-note.pink {
+  background: #fbdce9;
+  transform: rotate(-1deg);
+}
+
+.sticky-note.orange {
+  background: #fde2bd;
+  transform: rotate(0.8deg);
+}
+
+.sticky-note .note-body {
+  font-family: var(--font-hand);
+  font-size: 1.45rem;
+  line-height: 1.15;
+  margin: 0 0 0.6rem;
+  color: #453a2e;
+}
+
+.sticky-note footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #6b5c4d;
+}
+
+.note-new {
+  position: absolute;
+  top: 0.5rem;
+  inset-inline-end: 0.6rem;
+  background: var(--error);
+  color: #fff;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.05rem 0.5rem;
+}
+
+/* טופס המורים */
+
+.note-colors {
+  display: flex;
+  gap: 0.7rem;
+  margin: 0.3rem 0 0.8rem;
+}
+
+.note-pick {
+  flex: 1;
+  border-radius: 4px 14px 14px 14px;
+  padding: 0.8rem 0.6rem;
+  font-weight: 700;
+  border: 2px solid transparent;
+  box-shadow: 0 5px 12px -8px rgba(43, 38, 30, 0.5);
+}
+
+.note-pick small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.75rem;
+  margin-top: 0.15rem;
+}
+
+.note-pick.pink {
+  background: #fbdce9;
+  color: #7c3a56;
+}
+
+.note-pick.orange {
+  background: #fde2bd;
+  color: #7c5518;
+}
+
+.note-pick.selected {
+  border-color: currentColor;
+  transform: rotate(-2deg) scale(1.03);
+}
+
+.note-form {
+  text-align: right;
+}
+
+.sent-ok {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0.5rem 0;
+}
+
+.note-cta {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.9rem;
+}
+
+.note-cta a {
+  color: var(--accent-dark);
+}

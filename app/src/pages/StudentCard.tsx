@@ -20,6 +20,8 @@ import {
 } from '../types';
 import Avatar from '../components/Avatar';
 import ScheduleTab from '../components/ScheduleTab';
+import { GOAL_IDEAS } from '../content/goalIdeas';
+import { WORKSPACES } from '../content/workspaces';
 
 type Tab = 'overview' | 'meetings' | 'goals' | 'contacts' | 'schedule';
 
@@ -180,6 +182,21 @@ function Overview({
         )}
       </section>
 
+      <section className="card">
+        <h2>הכנה לאירועים</h2>
+        <p className="muted">
+          מרחב הכנה מרכז את מה שתיעדת + ידע מהספרייה + עורך תוצר, לפי האירוע.
+        </p>
+        <div className="ws-links">
+          {WORKSPACES.map((w) => (
+            <Link key={w.id} to={`/students/${student.id}/workspace/${w.id}`} className="ws-link">
+              <span className="ws-emoji">{w.emoji}</span>
+              {w.title}
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <CoverQuoteEditor student={student} />
     </div>
   );
@@ -270,15 +287,9 @@ function Goals({
   async function addGoal(e: React.FormEvent) {
     e.preventDefault();
     const repo = await getRepo();
-    await repo.addGoal({ studentId, domain, title, description, status: 'active' });
+    await repo.addGoal({ studentId, domain, title, description, status: 'active', steps: [] });
     setTitle('');
     setDescription('');
-    onChange();
-  }
-
-  async function setStatus(id: string, status: Goal['status']) {
-    const repo = await getRepo();
-    await repo.setGoalStatus(id, status);
     onChange();
   }
 
@@ -314,36 +325,135 @@ function Goals({
       {goals.length === 0 ? (
         <p className="muted">אין עדיין מטרות. מומלץ להגדירן יחד עם החניכ.ה בתחילת השנה.</p>
       ) : (
-        goals.map((g) => (
-          <article key={g.id} className="card">
-            <header className="row">
-              <span>
-                <span className="tag">{GOAL_DOMAIN_LABELS[g.domain]}</span>{' '}
-                <strong>{g.title}</strong>
-              </span>
-              <span className={`status status-${g.status}`}>{GOAL_STATUS_LABELS[g.status]}</span>
-            </header>
-            {g.description && <p className="prewrap">{g.description}</p>}
-            <div className="row gap">
-              {g.status !== 'done' && (
-                <button className="link" onClick={() => setStatus(g.id, 'done')}>
-                  סימון כהושגה
-                </button>
-              )}
-              {g.status === 'active' ? (
-                <button className="link" onClick={() => setStatus(g.id, 'paused')}>
-                  השהיה
-                </button>
-              ) : (
-                <button className="link" onClick={() => setStatus(g.id, 'active')}>
-                  החזרה לתהליך
-                </button>
-              )}
-            </div>
-          </article>
-        ))
+        goals.map((g) => <GoalCard key={g.id} goal={g} onChange={onChange} />)
       )}
     </div>
+  );
+}
+
+// כרטיס מטרה: דרכי פעולה (צ'קליסט), התקדמות, ורעיונות מהחוברת
+function GoalCard({ goal, onChange }: { goal: Goal; onChange: () => void }) {
+  const [newStep, setNewStep] = useState('');
+  const [showIdeas, setShowIdeas] = useState(false);
+  const steps = goal.steps ?? [];
+  const doneCount = steps.filter((s) => s.done).length;
+  const progress = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : null;
+
+  async function saveGoal(next: Goal) {
+    const repo = await getRepo();
+    await repo.updateGoal(next);
+    onChange();
+  }
+
+  function addStep(text: string) {
+    const step = { id: `st-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, text, done: false };
+    saveGoal({ ...goal, steps: [...steps, step] });
+    setNewStep('');
+  }
+
+  function toggleStep(id: string) {
+    saveGoal({
+      ...goal,
+      steps: steps.map((s) => (s.id === id ? { ...s, done: !s.done } : s)),
+    });
+  }
+
+  function removeStep(id: string) {
+    saveGoal({ ...goal, steps: steps.filter((s) => s.id !== id) });
+  }
+
+  const ideas = GOAL_IDEAS[goal.domain].filter(
+    (idea) => !steps.some((s) => s.text === idea),
+  );
+
+  return (
+    <article className="card">
+      <header className="row">
+        <span>
+          <span className="tag">{GOAL_DOMAIN_LABELS[goal.domain]}</span>{' '}
+          <strong>{goal.title}</strong>
+        </span>
+        <span className={`status status-${goal.status}`}>{GOAL_STATUS_LABELS[goal.status]}</span>
+      </header>
+      {goal.description && <p className="prewrap">{goal.description}</p>}
+
+      {progress !== null && (
+        <div className="progress" title={`${doneCount}/${steps.length} צעדים הושלמו`}>
+          <div className="progress-fill" style={{ width: `${progress}%` }} />
+          <span className="progress-label">
+            {doneCount}/{steps.length} · {progress}%
+          </span>
+        </div>
+      )}
+
+      <h3>דרכי פעולה</h3>
+      {steps.length === 0 && (
+        <p className="muted">עוד אין צעדים. הוסיפו דרך פעולה, או קחו רעיון מהחוברת ↓</p>
+      )}
+      <ul className="steps">
+        {steps.map((s) => (
+          <li key={s.id} className={s.done ? 'done' : ''}>
+            <label className="check-row">
+              <input type="checkbox" checked={s.done} onChange={() => toggleStep(s.id)} />
+              <span>{s.text}</span>
+            </label>
+            <button className="link" onClick={() => removeStep(s.id)} title="הסרה">
+              ✕
+            </button>
+          </li>
+        ))}
+      </ul>
+      <form
+        className="row wrap form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (newStep.trim()) addStep(newStep.trim());
+        }}
+      >
+        <label className="grow">
+          <input
+            value={newStep}
+            onChange={(e) => setNewStep(e.target.value)}
+            placeholder="צעד חדש, למשל: לקבוע ניסיון של שבועיים"
+          />
+        </label>
+        <button type="submit">+ צעד</button>
+      </form>
+
+      <button className="link" onClick={() => setShowIdeas(!showIdeas)}>
+        {showIdeas ? 'הסתרת הרעיונות' : `💡 רעיונות מהחוברת (${GOAL_DOMAIN_LABELS[goal.domain]})`}
+      </button>
+      {showIdeas && (
+        <ul className="ideas">
+          {ideas.length === 0 && <li className="muted">כל הרעיונות כבר נוספו 🎉</li>}
+          {ideas.map((idea) => (
+            <li key={idea}>
+              <span>{idea}</span>
+              <button className="link" onClick={() => addStep(idea)}>
+                + הוספה כצעד
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="row gap">
+        {goal.status !== 'done' && (
+          <button className="link" onClick={() => saveGoal({ ...goal, status: 'done' })}>
+            סימון כהושגה
+          </button>
+        )}
+        {goal.status === 'active' ? (
+          <button className="link" onClick={() => saveGoal({ ...goal, status: 'paused' })}>
+            השהיה
+          </button>
+        ) : (
+          <button className="link" onClick={() => saveGoal({ ...goal, status: 'active' })}>
+            החזרה לתהליך
+          </button>
+        )}
+      </div>
+    </article>
   );
 }
 

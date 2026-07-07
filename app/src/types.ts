@@ -119,6 +119,37 @@ export interface SentMessageView {
   receipts: { mentor: Mentor; readAt: string | null }[];
 }
 
+// ===== פתקים ורודים וכתומים — מסורת בית-ספרית =====
+// כל מורה (דרך קישור צוות + קוד) שולח.ת פתק לחונכ.ת של הילד.ה.
+// ורוד = חיובי, כתום = משהו לשיפור. רואה אותם רק החונכ.ת.
+
+export type NoteColor = 'pink' | 'orange';
+
+export interface Note {
+  id: string;
+  studentId: string;
+  mentorId: string; // נקבע אוטומטית לפי החונכ.ת של הילד.ה
+  teacherName: string;
+  color: NoteColor;
+  body: string;
+  createdAt: string;
+  readAt: string | null;
+}
+
+export const NOTE_COLOR_LABELS: Record<NoteColor, string> = {
+  pink: 'פתק ורוד — חיובי',
+  orange: 'פתק כתום — לשיפור',
+};
+
+// ===== מרחבי הכנה — תוצר לכל ילד.ה × אירוע =====
+
+export interface WorkspaceDraft {
+  studentId: string;
+  eventId: string;
+  content: string;
+  updatedAt: string;
+}
+
 // ===== דשבורד רכזת — מטא-נתונים בלבד, ללא תוכן מפגשים =====
 
 export interface MentorActivity {
@@ -151,6 +182,13 @@ export interface Meeting {
 export type GoalDomain = 'academic' | 'social' | 'personal' | 'emotional';
 export type GoalStatus = 'active' | 'done' | 'paused';
 
+// דרך פעולה להשגת המטרה — צעד בצ'קליסט
+export interface GoalStep {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
 export interface Goal {
   id: string;
   studentId: string;
@@ -158,6 +196,7 @@ export interface Goal {
   title: string;
   description: string;
   status: GoalStatus;
+  steps?: GoalStep[]; // דרכי פעולה; אופציונלי לתאימות עם נתונים ישנים
   createdAt: string;
 }
 

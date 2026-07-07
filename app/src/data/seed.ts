@@ -4,6 +4,7 @@ import type {
   Meeting,
   Mentor,
   Message,
+  Note,
   Schedule,
   Student,
 } from '../types';
@@ -216,3 +217,30 @@ export const seedReceipts: { messageId: string; mentorId: string; readAt: string
   { messageId: 'msg-1', mentorId: 'm-gili', readAt: null },
   { messageId: 'msg-1', mentorId: 'm-dana', readAt: new Date(Date.now() - 86400000).toISOString() },
 ];
+
+// פתקים ורודים/כתומים לדוגמה
+export const seedNotes: Note[] = [
+  {
+    id: 'n-1',
+    studentId: 's-1',
+    mentorId: 'm-gili',
+    teacherName: 'רותם (אמנות)',
+    color: 'pink',
+    body: 'איתי עזר היום לחניך צעיר בסדנה בלי שביקשו ממנו. היה מקסים לראות 💗',
+    createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
+    readAt: new Date(Date.now() - 2 * 86400000).toISOString(),
+  },
+  {
+    id: 'n-2',
+    studentId: 's-1',
+    mentorId: 'm-gili',
+    teacherName: 'אבי (מתמטיקה)',
+    color: 'orange',
+    body: 'איתי לא הגיע לשני השיעורים האחרונים למרות שנרשם. שווה לבדוק איתו מה קורה.',
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+    readAt: null,
+  },
+];
+
+// קוד הצוות לשליחת פתקים (בדמו בלבד; בסביבת אמת — secret בצד שרת)
+export const DEMO_NOTE_CODE = '1234';

@@ -6,17 +6,22 @@ import type {
   Mentor,
   MentorPrefs,
   Message,
+  Note,
+  NoteColor,
   Schedule,
   Student,
+  WorkspaceDraft,
 } from '../types';
 import { defaultPrefs } from '../types';
 import type { Repo } from './repo';
 import {
+  DEMO_NOTE_CODE,
   seedContacts,
   seedGoals,
   seedMeetings,
   seedMentors,
   seedMessages,
+  seedNotes,
   seedReceipts,
   seedSchedules,
   seedStudents,
@@ -44,6 +49,8 @@ interface Db {
   schedules: Schedule[];
   messages: Message[];
   receipts: Receipt[];
+  notes: Note[];
+  drafts: WorkspaceDraft[];
 }
 
 function load(): Db {
@@ -56,6 +63,8 @@ function load(): Db {
       db.schedules ??= seedSchedules;
       db.messages ??= seedMessages;
       db.receipts ??= seedReceipts;
+      db.notes ??= seedNotes;
+      db.drafts ??= [];
       db.students = db.students.map((s) => ({
         ...s,
         color: s.color ?? '',
@@ -77,6 +86,8 @@ function load(): Db {
     schedules: seedSchedules,
     messages: seedMessages,
     receipts: seedReceipts,
+    notes: seedNotes,
+    drafts: [],
   };
   save(db);
   return db;
@@ -305,6 +316,85 @@ export function createLocalRepo(): Repo {
             staleStudents,
           };
         });
+    },
+    async updateGoal(goal: Goal) {
+      const db = load();
+      const i = db.goals.findIndex((g) => g.id === goal.id);
+      if (i >= 0) {
+        db.goals[i] = goal;
+        save(db);
+      }
+    },
+
+    async getDraft(studentId: string, eventId: string) {
+      return (
+        load().drafts.find((d) => d.studentId === studentId && d.eventId === eventId) ?? null
+      );
+    },
+
+    async saveDraft(draft: WorkspaceDraft) {
+      const db = load();
+      const i = db.drafts.findIndex(
+        (d) => d.studentId === draft.studentId && d.eventId === draft.eventId,
+      );
+      if (i >= 0) db.drafts[i] = draft;
+      else db.drafts.push(draft);
+      save(db);
+    },
+
+    async listStudentsForNoteForm(code: string) {
+      if (code !== DEMO_NOTE_CODE) throw new Error('קוד שגוי');
+      return load()
+        .students.map((s) => ({ id: s.id, name: s.name }))
+        .sort((a, b) => a.name.localeCompare(b.name, 'he'));
+    },
+
+    async sendNote(
+      code: string,
+      studentId: string,
+      teacherName: string,
+      color: NoteColor,
+      body: string,
+    ) {
+      if (code !== DEMO_NOTE_CODE) throw new Error('קוד שגוי');
+      const db = load();
+      const student = db.students.find((s) => s.id === studentId);
+      if (!student) throw new Error('חניכ.ה לא נמצא.ה');
+      db.notes.push({
+        id: newId('n'),
+        studentId,
+        mentorId: student.mentorId,
+        teacherName,
+        color,
+        body,
+        createdAt: new Date().toISOString(),
+        readAt: null,
+      });
+      save(db);
+    },
+
+    async listNotesForMentor(mentorId: string) {
+      return load()
+        .notes.filter((n) => n.mentorId === mentorId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+
+    async listNotesForStudent(studentId: string) {
+      return load()
+        .notes.filter((n) => n.studentId === studentId)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+
+    async markNotesRead(mentorId: string) {
+      const db = load();
+      let changed = false;
+      for (const n of db.notes) {
+        if (n.mentorId === mentorId && !n.readAt) {
+          n.readAt = new Date().toISOString();
+          changed = true;
+        }
+      }
+      if (changed) save(db);
     },
   };
 }

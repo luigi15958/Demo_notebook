@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { getRepo } from '../data/repo';
-import type { InboxItem, Mentor, SentMessageView } from '../types';
+import type { InboxItem, Mentor, Note, SentMessageView } from '../types';
 
 export default function Messages({
   mentor,
@@ -26,15 +26,30 @@ function MentorInbox({
   onInboxChange: () => void;
 }) {
   const [items, setItems] = useState<InboxItem[] | null>(null);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [freshNoteIds, setFreshNoteIds] = useState<string[]>([]);
 
   const reload = useCallback(async () => {
     const repo = await getRepo();
-    setItems(await repo.listInbox(mentor.id));
-  }, [mentor.id]);
+    const [inbox, mentorNotes] = await Promise.all([
+      repo.listInbox(mentor.id),
+      repo.listNotesForMentor(mentor.id),
+    ]);
+    setItems(inbox);
+    setNotes(mentorNotes);
+    // פתקים חדשים מסומנים "חדש" עד היציאה מהעמוד, ונרשמים כנקראו
+    const fresh = mentorNotes.filter((n) => !n.readAt).map((n) => n.id);
+    if (fresh.length > 0) {
+      setFreshNoteIds(fresh);
+      await repo.markNotesRead(mentor.id);
+      onInboxChange();
+    }
+  }, [mentor.id, onInboxChange]);
 
   useEffect(() => {
     reload();
-  }, [reload]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function confirm(messageId: string) {
     const repo = await getRepo();
@@ -67,7 +82,30 @@ function MentorInbox({
           )}
         </article>
       ))}
+
+      <h2 className="section-title">פתקים מהצוות 📌</h2>
+      {notes.length === 0 && (
+        <p className="muted">אין עדיין פתקים. מורי הצוות שולחים דרך "פתק לחונכ.ת" במסך הכניסה.</p>
+      )}
+      <div className="notes-board">
+        {notes.map((n) => (
+          <StickyNote key={n.id} note={n} fresh={freshNoteIds.includes(n.id)} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function StickyNote({ note, fresh }: { note: Note; fresh: boolean }) {
+  return (
+    <article className={`sticky-note ${note.color}`}>
+      {fresh && <span className="note-new">חדש</span>}
+      <p className="note-body">{note.body}</p>
+      <footer>
+        <span>{note.teacherName}</span>
+        <span className="muted">{formatDateTime(note.createdAt)}</span>
+      </footer>
+    </article>
   );
 }
 

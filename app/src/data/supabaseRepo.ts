@@ -8,9 +8,12 @@ import type {
   Mentor,
   MentorActivity,
   MentorPrefs,
+  Note,
+  NoteColor,
   Schedule,
   SentMessageView,
   Student,
+  WorkspaceDraft,
 } from '../types';
 import { defaultPrefs } from '../types';
 import type { Repo } from './repo';
@@ -87,6 +90,7 @@ type GoalRow = {
   title: string;
   description: string;
   status: GoalStatus;
+  steps: Goal['steps'] | null;
   created_at: string;
 };
 
@@ -250,6 +254,7 @@ export function createSupabaseRepo(): Repo {
         title: r.title,
         description: r.description,
         status: r.status,
+        steps: r.steps ?? [],
         createdAt: r.created_at,
       }));
     },
@@ -263,6 +268,7 @@ export function createSupabaseRepo(): Repo {
           title: g.title,
           description: g.description,
           status: g.status,
+          steps: g.steps ?? [],
         })
         .select()
         .single();
@@ -275,6 +281,7 @@ export function createSupabaseRepo(): Repo {
         title: r.title,
         description: r.description,
         status: r.status,
+        steps: r.steps ?? [],
         createdAt: r.created_at,
       };
     },
@@ -493,5 +500,123 @@ export function createSupabaseRepo(): Repo {
         staleStudents: Number(r.stale_students),
       })) as MentorActivity[];
     },
+    async updateGoal(goal: Goal) {
+      const { error } = await client
+        .from('goals')
+        .update({
+          title: goal.title,
+          description: goal.description,
+          domain: goal.domain,
+          status: goal.status,
+          steps: goal.steps ?? [],
+        })
+        .eq('id', goal.id);
+      throwIf(error);
+    },
+
+    async getDraft(studentId: string, eventId: string) {
+      const { data, error } = await client
+        .from('workspace_drafts')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('event_id', eventId)
+        .maybeSingle();
+      throwIf(error);
+      if (!data) return null;
+      return {
+        studentId: data.student_id,
+        eventId: data.event_id,
+        content: data.content,
+        updatedAt: data.updated_at,
+      } as WorkspaceDraft;
+    },
+
+    async saveDraft(draft: WorkspaceDraft) {
+      const { error } = await client.from('workspace_drafts').upsert({
+        student_id: draft.studentId,
+        event_id: draft.eventId,
+        content: draft.content,
+        updated_at: new Date().toISOString(),
+      });
+      throwIf(error);
+    },
+
+    async listStudentsForNoteForm(code: string) {
+      const { data, error } = await client.rpc('list_students_for_notes', {
+        access_code: code,
+      });
+      throwIf(error);
+      return (data ?? []) as { id: string; name: string }[];
+    },
+
+    async sendNote(
+      code: string,
+      studentId: string,
+      teacherName: string,
+      color: NoteColor,
+      body: string,
+    ) {
+      const { error } = await client.rpc('submit_note', {
+        access_code: code,
+        p_student_id: studentId,
+        p_teacher_name: teacherName,
+        p_color: color,
+        p_body: body,
+      });
+      throwIf(error);
+    },
+
+    async listNotesForMentor(mentorId: string) {
+      const { data, error } = await client
+        .from('notes')
+        .select('*')
+        .eq('mentor_id', mentorId)
+        .order('created_at', { ascending: false });
+      throwIf(error);
+      return ((data ?? []) as NoteRow[]).map(noteFromRow);
+    },
+
+    async listNotesForStudent(studentId: string) {
+      const { data, error } = await client
+        .from('notes')
+        .select('*')
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false });
+      throwIf(error);
+      return ((data ?? []) as NoteRow[]).map(noteFromRow);
+    },
+
+    async markNotesRead(mentorId: string) {
+      const { error } = await client
+        .from('notes')
+        .update({ read_at: new Date().toISOString() })
+        .eq('mentor_id', mentorId)
+        .is('read_at', null);
+      throwIf(error);
+    },
+  };
+}
+
+type NoteRow = {
+  id: string;
+  student_id: string;
+  mentor_id: string;
+  teacher_name: string;
+  color: NoteColor;
+  body: string;
+  created_at: string;
+  read_at: string | null;
+};
+
+function noteFromRow(r: NoteRow): Note {
+  return {
+    id: r.id,
+    studentId: r.student_id,
+    mentorId: r.mentor_id,
+    teacherName: r.teacher_name,
+    color: r.color,
+    body: r.body,
+    createdAt: r.created_at,
+    readAt: r.read_at,
   };
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getRepo, isSupabaseConfigured } from '../data/repo';
 import type { Mentor } from '../types';
 
@@ -83,6 +83,9 @@ export default function Login({ onSignedIn }: { onSignedIn: (m: Mentor) => void 
             </div>
           </>
         )}
+        <p className="note-cta">
+          <Link to="/note">📝 מורה? שליחת פתק ורוד/כתום לחונכ.ת</Link>
+        </p>
       </div>
     </div>
   );
