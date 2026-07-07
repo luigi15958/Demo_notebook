@@ -81,9 +81,14 @@ export default function StudentsList({ mentor }: { mentor: Mentor }) {
             ? `${rows.length} חניכים וחניכות במחברת שלך`
             : 'המחברת שלך מחכה לחניכ.ה הראשון.ה'}
         </p>
-        <Link to="/students/new" className="button primary hero-cta">
-          + הוספת חניכ.ה
-        </Link>
+        <div className="row gap">
+          <Link to="/pick" className="button primary hero-cta">
+            בחירת חניכים 🎒
+          </Link>
+          <Link to="/students/new" className="button">
+            + ידנית
+          </Link>
+        </div>
       </div>
 
       {widgets

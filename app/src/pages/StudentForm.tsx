@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getRepo } from '../data/repo';
 import type { Mentor } from '../types';
 import { STUDENT_COLORS, STUDENT_EMOJIS } from '../theme';
+import { DIVISIONS } from '../types';
 
 export default function StudentForm({ mentor }: { mentor: Mentor }) {
   const navigate = useNavigate();
   const [name, setName] = useState('');
-  const [group, setGroup] = useState('');
+  const [group, setGroup] = useState<string>(DIVISIONS[1]);
+  const [grade, setGrade] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [intakeNotes, setIntakeNotes] = useState('');
   const [strengthsText, setStrengthsText] = useState('');
@@ -22,6 +24,7 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
       mentorId: mentor.id,
       name,
       group,
+      grade: grade.trim(),
       birthDate: birthDate || undefined,
       intakeNotes,
       strengths: strengthsText
@@ -49,9 +52,24 @@ export default function StudentForm({ mentor }: { mentor: Mentor }) {
           <input value={name} onChange={(e) => setName(e.target.value)} required />
         </label>
         <div className="row wrap">
-          <label className="grow">
-            חטיבה / קבוצה
-            <input value={group} onChange={(e) => setGroup(e.target.value)} required />
+          <label>
+            חטיבה
+            <select value={group} onChange={(e) => setGroup(e.target.value)}>
+              {DIVISIONS.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            שכבה
+            <input
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              placeholder="למשל: ז'"
+              required
+            />
           </label>
           <label>
             תאריך לידה

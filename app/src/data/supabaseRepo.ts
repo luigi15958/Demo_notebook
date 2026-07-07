@@ -1,5 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type {
+  AssignSettings,
+  AssignmentRow,
   ContactLogEntry,
   Goal,
   GoalStatus,
@@ -23,10 +25,11 @@ import type { Repo } from './repo';
 
 type StudentRow = {
   id: string;
-  mentor_id: string;
+  mentor_id: string | null;
   name: string;
   group_name: string;
   birth_date: string | null;
+  grade: string;
   intake_notes: string;
   strengths: string[];
   color: string;
@@ -41,6 +44,7 @@ function studentFromRow(r: StudentRow): Student {
     name: r.name,
     group: r.group_name,
     birthDate: r.birth_date ?? undefined,
+    grade: r.grade ?? '',
     intakeNotes: r.intake_notes,
     strengths: r.strengths ?? [],
     color: r.color ?? '',
@@ -117,11 +121,13 @@ export function createSupabaseRepo(): Repo {
   async function mentorFromProfile(userId: string): Promise<Mentor | null> {
     const { data, error } = await client
       .from('profiles')
-      .select('id, name, role')
+      .select('id, name, role, division')
       .eq('id', userId)
       .maybeSingle();
     throwIf(error);
-    return data ? { id: data.id, name: data.name, role: data.role } : null;
+    return data
+      ? { id: data.id, name: data.name, role: data.role, division: data.division ?? '' }
+      : null;
   }
 
   return {
@@ -179,6 +185,7 @@ export function createSupabaseRepo(): Repo {
           name: s.name,
           group_name: s.group,
           birth_date: s.birthDate ?? null,
+          grade: s.grade,
           intake_notes: s.intakeNotes,
           strengths: s.strengths,
           color: s.color,
@@ -383,7 +390,7 @@ export function createSupabaseRepo(): Repo {
     async listMentors() {
       const { data, error } = await client
         .from('profiles')
-        .select('id, name, role')
+        .select('id, name, role, division')
         .eq('role', 'mentor')
         .order('name');
       throwIf(error);
@@ -593,6 +600,79 @@ export function createSupabaseRepo(): Repo {
         .eq('mentor_id', mentorId)
         .is('read_at', null);
       throwIf(error);
+    },
+    async getAssignSettings() {
+      const { data, error } = await client.rpc('get_assign_settings');
+      throwIf(error);
+      const row = (data ?? [])[0] ?? { locked: false, cap: 15 };
+      return { locked: Boolean(row.locked), cap: Number(row.cap) } as AssignSettings;
+    },
+
+    async setAssignSettings(settings: AssignSettings) {
+      const { error } = await client.rpc('set_assign_settings', {
+        p_locked: settings.locked,
+        p_cap: settings.cap,
+      });
+      throwIf(error);
+    },
+
+    async listUnassigned(division: string) {
+      const { data, error } = await client
+        .from('students')
+        .select('id, name, group_name, grade')
+        .is('mentor_id', null)
+        .eq('group_name', division)
+        .order('grade')
+        .order('name');
+      throwIf(error);
+      return ((data ?? []) as { id: string; name: string; group_name: string; grade: string }[]).map(
+        (r) => ({ id: r.id, name: r.name, division: r.group_name, grade: r.grade, mentorId: null }),
+      ) as AssignmentRow[];
+    },
+
+    async claimStudent(studentId: string) {
+      // הבדיקות (נעילה, תקרה, כפילות) נאכפות בפונקציה בצד השרת
+      const { error } = await client.rpc('claim_student', { p_student_id: studentId });
+      throwIf(error);
+    },
+
+    async listAssignmentBoard() {
+      const { data, error } = await client.rpc('coordinator_assignment_board');
+      throwIf(error);
+      return ((data ?? []) as {
+        id: string;
+        name: string;
+        division: string;
+        grade: string;
+        mentor_id: string | null;
+      }[]).map((r) => ({
+        id: r.id,
+        name: r.name,
+        division: r.division,
+        grade: r.grade,
+        mentorId: r.mentor_id,
+      })) as AssignmentRow[];
+    },
+
+    async coordinatorAssign(studentId: string, mentorId: string | null) {
+      const { error } = await client.rpc('coordinator_assign', {
+        p_student_id: studentId,
+        p_mentor_id: mentorId,
+      });
+      throwIf(error);
+    },
+
+    async importStudents(rows) {
+      const { data, error } = await client.rpc('import_students', {
+        p_rows: rows.map((r) => ({
+          name: r.name,
+          division: r.division,
+          grade: r.grade,
+          birth_date: r.birthDate ?? null,
+        })),
+      });
+      throwIf(error);
+      return Number(data ?? 0);
     },
   };
 }

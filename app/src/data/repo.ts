@@ -1,4 +1,6 @@
 import type {
+  AssignSettings,
+  AssignmentRow,
   ContactLogEntry,
   Goal,
   GoalStatus,
@@ -80,6 +82,17 @@ export interface Repo {
   listNotesForMentor(mentorId: string): Promise<Note[]>;
   listNotesForStudent(studentId: string): Promise<Note[]>;
   markNotesRead(mentorId: string): Promise<void>;
+
+  // שיבוץ חונכויות (שלב א' של מסמך האבטחה)
+  getAssignSettings(): Promise<AssignSettings>;
+  setAssignSettings(settings: AssignSettings): Promise<void>; // רכזת בלבד
+  listUnassigned(division: string): Promise<AssignmentRow[]>; // מאגר לפי חטיבה
+  claimStudent(studentId: string, mentorId: string): Promise<void>; // בחירה ע"י חונכ.ת
+  listAssignmentBoard(): Promise<AssignmentRow[]>; // רכזת — מטא-נתונים בלבד
+  coordinatorAssign(studentId: string, mentorId: string | null): Promise<void>;
+  importStudents(
+    rows: { name: string; division: string; grade: string; birthDate?: string }[],
+  ): Promise<number>; // רכזת — ייבוא למאגר, מחזיר כמה נוספו
 }
 
 export function isSupabaseConfigured(): boolean {

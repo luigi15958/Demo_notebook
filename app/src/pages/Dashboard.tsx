@@ -69,9 +69,14 @@ export default function Dashboard({ mentor }: { mentor: Mentor }) {
 
       <div className="row" style={{ margin: '0.4rem 0 0.8rem' }}>
         <h2 className="section-title">קיום חונכויות סדיר</h2>
-        <Link to="/messages" className="button primary">
-          + הודעה לחונכים
-        </Link>
+        <span className="row gap">
+          <Link to="/assign" className="button">
+            לוח שיבוץ 🎒
+          </Link>
+          <Link to="/messages" className="button primary">
+            + הודעה לחונכים
+          </Link>
+        </span>
       </div>
 
       {activity.map((a) => (

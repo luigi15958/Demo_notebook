@@ -1239,3 +1239,29 @@ button.link,
 .note-cta a {
   color: var(--accent-dark);
 }
+
+
+/* ---------- שיבוץ ---------- */
+
+.assign-select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.3rem 0.5rem;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  max-width: 11rem;
+}
+
+.cap-input {
+  width: 4.5rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  font: inherit;
+}
+
+.card.warn {
+  color: var(--warn);
+  font-weight: 600;
+}

@@ -15,6 +15,8 @@ import Messages from './pages/Messages';
 import Dashboard from './pages/Dashboard';
 import Workspace from './pages/Workspace';
 import SendNote from './pages/SendNote';
+import PickStudents from './pages/PickStudents';
+import AssignBoard from './pages/AssignBoard';
 
 function IconHome() {
   return (
@@ -95,6 +97,27 @@ export default function App() {
     })();
   }, [loadPrefs, refreshUnread]);
 
+  // נעילה אוטומטית: חוסר פעילות של 15 דקות מחזיר למסך הכניסה
+  useEffect(() => {
+    if (!mentor) return;
+    const IDLE_MS = 15 * 60 * 1000;
+    let timer = window.setTimeout(lock, IDLE_MS);
+    function lock() {
+      handleSignOut();
+    }
+    function resetTimer() {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(lock, IDLE_MS);
+    }
+    const events = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const;
+    events.forEach((ev) => window.addEventListener(ev, resetTimer, { passive: true }));
+    return () => {
+      window.clearTimeout(timer);
+      events.forEach((ev) => window.removeEventListener(ev, resetTimer));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mentor]);
+
   async function handleSignedIn(m: Mentor) {
     setMentor(m);
     await loadPrefs(m);
@@ -164,6 +187,8 @@ export default function App() {
           <Route path="/students/:id" element={<StudentCard mentor={mentor} />} />
           <Route path="/students/:id/meetings/new" element={<MeetingForm mentor={mentor} />} />
           <Route path="/students/:id/workspace/:eventId" element={<Workspace />} />
+          <Route path="/pick" element={<PickStudents mentor={mentor} />} />
+          <Route path="/assign" element={<AssignBoard />} />
           <Route path="/note" element={<SendNote />} />
           <Route path="/library" element={<Library />} />
           <Route path="/library/:slug" element={<LibraryChapterPage />} />

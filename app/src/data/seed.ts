@@ -12,8 +12,8 @@ import type {
 // נתוני דוגמה למצב דמו — דמויות בדויות בלבד
 
 export const seedMentors: Mentor[] = [
-  { id: 'm-gili', name: 'גילי מזרחי', role: 'mentor' },
-  { id: 'm-dana', name: 'דנה ברק', role: 'mentor' },
+  { id: 'm-gili', name: 'גילי מזרחי', role: 'mentor', division: 'חטיבת ביניים' },
+  { id: 'm-dana', name: 'דנה ברק', role: 'mentor', division: 'חטיבה בוגרת' },
   { id: 'm-noa', name: 'נעה וילנר', role: 'coordinator' },
 ];
 
@@ -23,6 +23,7 @@ export const seedStudents: Student[] = [
     mentorId: 'm-gili',
     name: 'איתי כהן',
     group: 'חטיבת ביניים',
+    grade: 'ז\'',
     birthDate: '2013-03-14',
     intakeNotes:
       'עבר מחונכת קודמת (דנה). אוהב כדורסל ומשחקי אסטרטגיה. ההורים ציינו קושי בהתמדה בקורסים. היועצת המליצה על חיזוק תחושת מסוגלות.',
@@ -36,6 +37,7 @@ export const seedStudents: Student[] = [
     mentorId: 'm-gili',
     name: 'תמר לוי',
     group: 'חטיבת ביניים',
+    grade: 'ח\'',
     birthDate: '2012-11-02',
     intakeNotes:
       'שנה ראשונה בבית הספר. מגיעה מבית ספר רגיל, עדיין לומדת את עקרון הבחירה. אוהבת ציור ובעלי חיים.',
@@ -49,6 +51,7 @@ export const seedStudents: Student[] = [
     mentorId: 'm-gili',
     name: 'יונתן פרידמן',
     group: 'חטיבה צעירה',
+    grade: 'ה\'',
     birthDate: '2015-07-21',
     intakeNotes: 'שנה שנייה אצלי. השנה ביקש להעמיק בתכנות. קשר טוב עם ההורים.',
     strengths: ['סקרנות', 'התמדה בתחומי עניין'],
@@ -61,11 +64,52 @@ export const seedStudents: Student[] = [
     mentorId: 'm-dana',
     name: 'נועם שפירא',
     group: 'חטיבה בוגרת',
+    grade: 'י\'',
     birthDate: '2010-09-08',
     intakeNotes: 'שנה שלישית אצלי. מוביל בפרלמנט.',
     strengths: ['מנהיגות', 'רהיטות'],
     color: '#a5761f',
     emoji: '🎭',
+    coverQuote: '',
+  },
+  // מאגר השיבוץ — טרם נבחרו ע"י חונכ.ת
+  {
+    id: 's-5',
+    mentorId: null,
+    name: 'עלמה גורן',
+    group: 'חטיבת ביניים',
+    grade: 'ז\'',
+    birthDate: '2013-06-30',
+    intakeNotes: '',
+    strengths: [],
+    color: '',
+    emoji: '',
+    coverQuote: '',
+  },
+  {
+    id: 's-6',
+    mentorId: null,
+    name: 'אורי אשכנזי',
+    group: 'חטיבת ביניים',
+    grade: 'ח\'',
+    birthDate: '2012-02-11',
+    intakeNotes: '',
+    strengths: [],
+    color: '',
+    emoji: '',
+    coverQuote: '',
+  },
+  {
+    id: 's-7',
+    mentorId: null,
+    name: 'מיקה סגל',
+    group: 'חטיבה בוגרת',
+    grade: 'ט\'',
+    birthDate: '2011-12-01',
+    intakeNotes: '',
+    strengths: [],
+    color: '',
+    emoji: '',
     coverQuote: '',
   },
 ];

@@ -1,4 +1,5 @@
 import type {
+  AssignSettings,
   ContactLogEntry,
   Goal,
   GoalStatus,
@@ -51,6 +52,7 @@ interface Db {
   receipts: Receipt[];
   notes: Note[];
   drafts: WorkspaceDraft[];
+  assign: AssignSettings;
 }
 
 function load(): Db {
@@ -65,6 +67,8 @@ function load(): Db {
       db.receipts ??= seedReceipts;
       db.notes ??= seedNotes;
       db.drafts ??= [];
+      db.assign ??= { locked: false, cap: 15 };
+      db.students = db.students.map((s) => ({ ...s, grade: s.grade ?? '' }));
       db.students = db.students.map((s) => ({
         ...s,
         color: s.color ?? '',
@@ -88,6 +92,7 @@ function load(): Db {
     receipts: seedReceipts,
     notes: seedNotes,
     drafts: [],
+    assign: { locked: false, cap: 15 },
   };
   save(db);
   return db;
@@ -345,7 +350,8 @@ export function createLocalRepo(): Repo {
     async listStudentsForNoteForm(code: string) {
       if (code !== DEMO_NOTE_CODE) throw new Error('קוד שגוי');
       return load()
-        .students.map((s) => ({ id: s.id, name: s.name }))
+        .students.filter((s) => s.mentorId) // רק מי שכבר משויכ.ת לחונכ.ת
+        .map((s) => ({ id: s.id, name: s.name }))
         .sort((a, b) => a.name.localeCompare(b.name, 'he'));
     },
 
@@ -360,10 +366,11 @@ export function createLocalRepo(): Repo {
       const db = load();
       const student = db.students.find((s) => s.id === studentId);
       if (!student) throw new Error('חניכ.ה לא נמצא.ה');
+      if (!student.mentorId) throw new Error('לחניכ.ה אין עדיין חונכ.ת');
       db.notes.push({
         id: newId('n'),
         studentId,
-        mentorId: student.mentorId,
+        mentorId: student.mentorId!,
         teacherName,
         color,
         body,
@@ -395,6 +402,91 @@ export function createLocalRepo(): Repo {
         }
       }
       if (changed) save(db);
+    },
+    async getAssignSettings() {
+      return load().assign;
+    },
+
+    async setAssignSettings(settings: AssignSettings) {
+      const db = load();
+      db.assign = settings;
+      save(db);
+    },
+
+    async listUnassigned(division: string) {
+      return load()
+        .students.filter((s) => !s.mentorId && s.group === division)
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          division: s.group,
+          grade: s.grade,
+          mentorId: null,
+        }))
+        .sort((a, b) => a.grade.localeCompare(b.grade, 'he') || a.name.localeCompare(b.name, 'he'));
+    },
+
+    async claimStudent(studentId: string, mentorId: string) {
+      const db = load();
+      if (db.assign.locked) throw new Error('השיבוץ נעול — פנו לרכזת החונכות');
+      const student = db.students.find((s) => s.id === studentId);
+      if (!student) throw new Error('חניכ.ה לא נמצא.ה');
+      if (student.mentorId) throw new Error('החניכ.ה כבר שויכ.ה לחונכ.ת אחר.ת');
+      const count = db.students.filter((s) => s.mentorId === mentorId).length;
+      if (count >= db.assign.cap) {
+        throw new Error(`הגעת לתקרת החניכים (${db.assign.cap}) — פנו לרכזת`);
+      }
+      student.mentorId = mentorId;
+      save(db);
+    },
+
+    async listAssignmentBoard() {
+      return load()
+        .students.map((s) => ({
+          id: s.id,
+          name: s.name,
+          division: s.group,
+          grade: s.grade,
+          mentorId: s.mentorId,
+        }))
+        .sort(
+          (a, b) =>
+            a.division.localeCompare(b.division, 'he') ||
+            a.grade.localeCompare(b.grade, 'he') ||
+            a.name.localeCompare(b.name, 'he'),
+        );
+    },
+
+    async coordinatorAssign(studentId: string, mentorId: string | null) {
+      const db = load();
+      const student = db.students.find((s) => s.id === studentId);
+      if (!student) throw new Error('חניכ.ה לא נמצא.ה');
+      student.mentorId = mentorId;
+      save(db);
+    },
+
+    async importStudents(rows) {
+      const db = load();
+      let added = 0;
+      for (const row of rows) {
+        if (!row.name.trim()) continue;
+        db.students.push({
+          id: newId('s'),
+          mentorId: null,
+          name: row.name.trim(),
+          group: row.division.trim(),
+          grade: row.grade.trim(),
+          birthDate: row.birthDate?.trim() || undefined,
+          intakeNotes: '',
+          strengths: [],
+          color: '',
+          emoji: '',
+          coverQuote: '',
+        });
+        added += 1;
+      }
+      save(db);
+      return added;
     },
   };
 }

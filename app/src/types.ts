@@ -2,18 +2,23 @@
 
 export type Role = 'mentor' | 'coordinator';
 
+// חטיבות בית הספר
+export const DIVISIONS = ['חטיבה צעירה', 'חטיבת ביניים', 'חטיבה בוגרת'] as const;
+
 export interface Mentor {
   id: string;
   name: string;
   role: Role;
+  division?: string; // החטיבה של החונכ.ת — קובעת איזה מאגר שיבוץ רואים
 }
 
 export interface Student {
   id: string;
-  mentorId: string;
+  mentorId: string | null; // null = במאגר השיבוץ, טרם נבחר.ה ע"י חונכ.ת
   name: string;
-  group: string; // חטיבה / קבוצה
+  group: string; // חטיבה
   birthDate?: string; // ISO date
+  grade: string; // שכבה (א'–י"ב)
   intakeNotes: string; // תיק היכרות: מידע מיועצת, חונך קודם, הורים
   strengths: string[]; // פרופיל חוזקות
   color: string; // צבע אישי לכרטיס הילד.ה (hex)
@@ -148,6 +153,22 @@ export interface WorkspaceDraft {
   eventId: string;
   content: string;
   updatedAt: string;
+}
+
+// ===== שיבוץ חונכויות =====
+
+export interface AssignSettings {
+  locked: boolean; // נעילת שיבוץ — שינויים רק דרך הרכזת
+  cap: number; // תקרת חניכים לחונכ.ת
+}
+
+// שורת מטא-נתונים ללוח השיבוץ של הרכזת (ללא תיק היכרות ותוכן)
+export interface AssignmentRow {
+  id: string;
+  name: string;
+  division: string;
+  grade: string;
+  mentorId: string | null;
 }
 
 // ===== דשבורד רכזת — מטא-נתונים בלבד, ללא תוכן מפגשים =====
