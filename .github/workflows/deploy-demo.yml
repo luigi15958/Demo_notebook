@@ -34,8 +34,13 @@ jobs:
           cache-dependency-path: app/package-lock.json
       - run: npm ci
         working-directory: app
+      # כשמוגדרים משתני Supabase ברפוזיטורי (Settings > Secrets and variables >
+      # Actions > Variables) הפריסה הופכת לסביבת אמת; בלעדיהם - מצב הדגמה.
       - run: npm run build
         working-directory: app
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
       - uses: actions/configure-pages@v5
         with:
           enablement: true
